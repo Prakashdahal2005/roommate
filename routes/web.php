@@ -24,5 +24,5 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/{profile}', [ProfileController::class, 'show'])->name('profile.show');
 });
 
-//batch update for kmeans++ clusters ran by admin regularly
+//batch update for kmeans++ clusters ran by admin regularly(needs to be automated)
 Route::get('/runkmean',[ClusterController::class,'kMeanBatchUpdate']);
