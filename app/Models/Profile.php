@@ -24,6 +24,13 @@ class Profile extends Model
         'pets_ok',
         'is_active'
     ];
+    protected $casts = [
+    'move_in_date' => 'date',   // this will automatically convert string to Carbon
+    'smokes' => 'boolean',
+    'pets_ok' => 'boolean',
+    'is_active' => 'boolean',
+];
+
     public function user()
     {
         return $this->belongsTo(User::class);

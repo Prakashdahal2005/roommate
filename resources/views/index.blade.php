@@ -11,7 +11,7 @@
             @else
                 <div style="width:100px; height:100px; background-color:#222;"></div>
             @endif
-            <p>{{ $profile->display_name }}</p>
+            <a href="{{ route('profile.show',$profile) }}"><p>{{ $profile->display_name }}</p></a>
         </div>
     @empty
         <p>No profiles found.</p>

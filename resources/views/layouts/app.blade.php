@@ -1,3 +1,7 @@
+
+<head>
+    <title>@yield('title')</title>
+</head>
 <nav>
     <ul>
         @guest
@@ -12,6 +16,7 @@
                     @csrf
                     <button type="submit">Logout ({{ $username }})</button>
                 </form>
+                <strong><a href="{{ route('profile.edit') }}">Your profile</a></strong>
             </li>
         @endauth
     </ul>

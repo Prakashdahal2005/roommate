@@ -1,12 +1,14 @@
 <?php
 
+use App\Http\Controllers\Admin\ClusterController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\EnsureProfileExists;
 use Illuminate\Support\Facades\Route;
 
 //homepage route
-Route::get('/',[ProfileController::class,'index'])->name('home');
+Route::get('/',[HomepageController::class,'index'])->name('home');
 
 //auth routes
 Route::get('/register',[AuthController::class,'showRegister'])->name('register');
@@ -17,12 +19,9 @@ Route::post('/logout',[AuthController::class,'logout'])->name('logout');
 
 //profile routes
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/{profile}', [ProfileController::class, 'show'])->name('profile.show');
 });
 
- 
-//matching profiles
-// web.php
-Route::get('/profiles/matches', [ProfileController::class, 'matches'])->name('profiles.matches');
+Route::get('/runkmean',[ClusterController::class,'kMeanBatchUpdate']);

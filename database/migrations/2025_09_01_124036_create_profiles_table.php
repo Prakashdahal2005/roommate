@@ -34,6 +34,7 @@ return new class extends Migration
             // Indexes for performance
             $table->index(['budget_min', 'budget_max']);
             $table->foreignID('user_id')->constrained()->ondelete('cascade');
+            $table->foreignID('cluster_id')->nullable()->constrained()->nullOnDelete();
         });
     }
 
