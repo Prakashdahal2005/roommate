@@ -1,8 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+@guest
 <h1>All Profiles</h1>
-
+@endguest
+@auth
+<h1>Top matches</h1>
+@endauth
 <div class="profiles-grid">
     @forelse($profiles as $profile)
         <div class="profile-card">
