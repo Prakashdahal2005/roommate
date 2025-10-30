@@ -1,3 +1,25 @@
+# Dependencies
+/node_modules/
+/vendor/
+
+# Environment & builds
+/.env
+/.env.*
+/public/storage
+/storage/*.key
+/storage/app/public/*
+/bootstrap/cache/*
+
+# SQLite database
+/database/database.sqlite
+
+# OS / editor
+Thumbs.db
+.DS_Store
+*.log
+/.idea/
+/.vscode/
+*.iml
 *.log
 .DS_Store
 .env

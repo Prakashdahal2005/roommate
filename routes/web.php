@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\Route;
 //homepage route
 Route::get('/',[HomepageController::class,'index'])->name('home');
 
+// simple about page
+Route::view('/about', 'about')->name('about');
+
+// simple contact page
+Route::view('/contact', 'contact')->name('contact');
+
 //auth routes
 Route::get('/register',[AuthController::class,'showRegister'])->name('register');
 Route::post('/register',[AuthController::class,'register'])->name('register.submit');

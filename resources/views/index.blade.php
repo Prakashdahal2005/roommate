@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<h1>All Profiles</h1>
+<h1>Discover Roommates</h1>
+<p>Browse profiles and click any name to view details.</p>
 
 <div class="profiles-grid">
     @forelse($profiles as $profile)
