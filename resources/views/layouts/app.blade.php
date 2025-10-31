@@ -4,6 +4,9 @@
 </head>
 <nav>
     <ul>
+        <li><a href="{{ route('home') }}">Home</a></li>
+        <li><a href="{{ route('about') }}">About</a></li>
+        <li><a href="{{ route('contact') }}">Contact</a></li>
         @guest
             <!-- Show for guests only -->
             <li><a href="{{ route('login') }}">Login</a></li>

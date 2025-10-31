@@ -7,6 +7,74 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Getting Started (Windows)
+
+1. Install prerequisites
+   - PHP 8.2+ and Composer: see `https://getcomposer.org/download/`
+   - Node.js 18+: see `https://nodejs.org/en/download`
+
+2. Clone project and open PowerShell in the project folder
+   ```powershell
+   cd "C:\\Users\\Smriti\\Downloads\\roommate-master\\roommate-master"
+   ```
+
+3. Create `.env`
+   ```powershell
+   @"
+   APP_NAME=Roommate
+   APP_ENV=local
+   APP_KEY=
+   APP_DEBUG=true
+   APP_URL=http://localhost
+
+   LOG_CHANNEL=stack
+   LOG_LEVEL=debug
+
+   DB_CONNECTION=sqlite
+   
+   CACHE_STORE=file
+   QUEUE_CONNECTION=sync
+   SESSION_DRIVER=file
+   SESSION_LIFETIME=120
+
+   FILESYSTEM_DISK=public
+   BROADCAST_DRIVER=log
+   MAIL_MAILER=log
+   "@ | Out-File -FilePath .env -Encoding utf8 -Force
+   ```
+
+4. Ensure SQLite file exists
+   ```powershell
+   New-Item -ItemType File -Path .\database\database.sqlite -Force | Out-Null
+   ```
+
+5. Install dependencies and set app key
+   ```powershell
+   composer install --no-interaction --prefer-dist
+   php artisan key:generate
+   ```
+
+6. Migrate and seed demo data
+   ```powershell
+   php artisan migrate --force
+   php artisan db:seed --class=UserWithProfileSeeder --force
+   ```
+
+7. Frontend build (in a separate terminal keep running)
+   ```powershell
+   npm ci
+   npm run dev
+   ```
+
+8. Serve the app
+   ```powershell
+   php artisan serve
+   ```
+
+Open `http://127.0.0.1:8000` in your browser.
+
+---
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

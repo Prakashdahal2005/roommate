@@ -1,12 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
+<h1>Discover Roommates</h1>
+<p>Browse profiles and click any name to view details.</p>
+
 @guest
-<h1>All Profiles</h1>
+    <h2>All Profiles</h2>
 @endguest
 @auth
-<h1>Top matches</h1>
+    <h2>Top matches</h2>
 @endauth
+
 <div class="profiles-grid">
     @forelse($profiles as $profile)
         <div class="profile-card">

@@ -9,3 +9,10 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Simple spacing for main content */
+main { padding: 1rem; }
+
+/* Basic layout for profile cards without Tailwind */
+.profiles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+.profile-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; text-align: center; }

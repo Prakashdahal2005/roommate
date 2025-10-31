@@ -8,24 +8,29 @@ use App\Http\Middleware\EnsureProfileExists;
 use Illuminate\Support\Facades\Route;
 
 //homepage route
-Route::get('/',[HomepageController::class,'index'])->name('home');
+Route::get('/', [HomepageController::class, 'index'])->name('home');
 
-Route::middleware('guest')->group(function(){
-    Route::get('/register',[AuthController::class,'showRegister'])->name('register');
-    Route::post('/register',[AuthController::class,'register'])->name('register.submit');
-    Route::get('/login',[AuthController::class,'showLogin'])->name('login');
-    Route::post('/login',[AuthController::class,'login'])->name('login.submit');
+// simple about page
+Route::view('/about', 'about')->name('about');
+
+// simple contact page
+Route::view('/contact', 'contact')->name('contact');
+
+// guest-only auth routes (register, login)
+Route::middleware('guest')->group(function () {
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 });
 
-
-
-//profile routes
+// auth-only routes (logout, profile, etc.)
 Route::middleware('auth')->group(function () {
-    Route::post('/logout',[AuthController::class,'logout'])->name('logout');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/profile/{profile}', [ProfileController::class, 'show'])->name('profile.show');
 });
 
-//batch update for kmeans++ clusters ran by admin regularly(needs to be automated)
-Route::get('/runkmean',[ClusterController::class,'kMeanBatchUpdate']);
+// batch update for kmeans++ clusters ran by admin regularly (needs to be automated)
+Route::get('/runkmean', [ClusterController::class, 'kMeanBatchUpdate']);
