@@ -4,6 +4,13 @@
 <h1>Discover Roommates</h1>
 <p>Browse profiles and click any name to view details.</p>
 
+@guest
+    <h2>All Profiles</h2>
+@endguest
+@auth
+    <h2>Top matches</h2>
+@endauth
+
 <div class="profiles-grid">
     @forelse($profiles as $profile)
         <div class="profile-card">
