@@ -29,8 +29,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::get('/profile/{profile}', [ProfileController::class, 'show'])->name('profile.show');
 });
+
+//guest can view profile
+Route::get('/profile/{profile}', [ProfileController::class, 'show'])->name('profile.show');
+
 
 // batch update for kmeans++ clusters ran by admin regularly (needs to be automated)
 Route::get('/runkmean', [ClusterController::class, 'kMeanBatchUpdate']);
