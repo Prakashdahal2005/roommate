@@ -15,4 +15,70 @@ main { padding: 1rem; }
 
 /* Basic layout for profile cards without Tailwind */
 .profiles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
-.profile-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; text-align: center; }
+.profile-card { border: 1px solid #E5E5EA; border-radius: 8px; padding: 12px; text-align: center; }
+
+/* Container helpers */
+.container { width: 100%; max-width: 1200px; margin-inline: auto; padding-inline: 1rem; }
+
+/* Improve grid responsiveness and spacing */
+.profiles-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; align-items: stretch; }
+
+/* Card visual polish */
+.profile-card {
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+	transition: box-shadow 200ms ease, transform 200ms ease;
+}
+
+.profile-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.10); transform: translateY(-2px); }
+.profile-card:focus-within { outline: 2px solid #2563eb; outline-offset: 2px; }
+
+/* Avatar inside card */
+.profile-avatar { width: clamp(56px, 12vw, 88px); height: clamp(56px, 12vw, 88px); border-radius: 9999px; object-fit: cover; display: block; margin: 0 auto 12px; border: 2px solid #E5E5EA; }
+
+/* Name and meta */
+.profile-name { font-weight: 600; font-size: 1rem; color: #111827; margin-bottom: 6px; }
+.profile-meta { font-size: .875rem; color: #6b7280; margin-bottom: 10px; }
+
+/* Tags/badges */
+.badges { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 10px; }
+.badge { font-size: .75rem; padding: 4px 8px; border-radius: 9999px; background: #F2F2F7; color: #1C1C1E; border: 1px solid #E5E5EA; }
+.badge.success { background: #E6F9EE; color: #0B8457; border-color: #C8F5DC; }
+.badge.info { background: #E6F0FF; color: #0A84FF; border-color: #CADAFF; }
+.badge.warn { background: #FFF4E5; color: #C93400; border-color: #FFD6A5; }
+
+/* Card footer actions */
+.profile-actions { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
+
+/* Buttons */
+.btn { appearance: none; -webkit-appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; border-radius: 10px; padding: 10px 14px; line-height: 1.2; border: 1px solid transparent; cursor: pointer; transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease; }
+.btn:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
+.btn-primary { background: #0A84FF; color: #fff; border-color: #0A84FF; }
+.btn-primary:hover { background: #007AFF; border-color: #007AFF; }
+.btn-outline { background: #fff; color: #1C1C1E; border-color: #E5E5EA; }
+.btn-outline:hover { background: #F2F2F7; }
+
+/* Utilities */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	.profile-card { transition: none; }
+	.btn { transition: none; }
+}
+
+/* Removed system-driven auto dark; user toggle is authoritative */
+
+/* Explicit dark mode via attribute takes precedence */
+[data-theme="dark"] body { background: #1C1C1E; color: #EBEBF5; }
+[data-theme="dark"] .profile-card { background: #2C2C2E; border-color: #3A3A3C; box-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+[data-theme="dark"] .profile-card:hover { box-shadow: 0 10px 28px rgba(0,0,0,0.6); }
+[data-theme="dark"] .profile-name { color: #FFFFFF; }
+[data-theme="dark"] .profile-meta { color: #AEAEB2; }
+[data-theme="dark"] .badge { background: #3A3A3C; color: #EBEBF5; border-color: #48484A; }
+[data-theme="dark"] .badge.success { background: #0B3D2D; color: #A7F3D0; border-color: #1F6F54; }
+[data-theme="dark"] .badge.info { background: #0A1E40; color: #7DB4FF; border-color: #0A84FF; }
+[data-theme="dark"] .badge.warn { background: #3D2A12; color: #FFD6A5; border-color: #C93400; }
+[data-theme="dark"] .btn-outline { background: #2C2C2E; color: #EBEBF5; border-color: #3A3A3C; }
+[data-theme="dark"] .btn-outline:hover { background: #3A3A3C; }
