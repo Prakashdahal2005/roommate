@@ -69,10 +69,9 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
    - PHP 8.2+ and Composer: see `https://getcomposer.org/download/`
    - Node.js 18+: see `https://nodejs.org/en/download`
 
+
 2. Clone project and open PowerShell in the project folder
-   ```powershell
-   cd "C:\\Users\\Smriti\\Downloads\\roommate-master\\roommate-master"
-   ```
+   
 
 3. Create `.env`
    ```powershell
