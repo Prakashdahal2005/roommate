@@ -32,7 +32,7 @@
         <div class="profile-detail-group">
             <div class="profile-detail-item">
                 <span class="detail-label">Budget Range</span>
-                <span class="detail-value">${{ $profile->budget_min }} - ${{ $profile->budget_max }}</span>
+                <span class="detail-value">Rs. {{ $profile->budget_min }} - Rs. {{ $profile->budget_max }}</span>
             </div>
             <div class="profile-detail-item">
                 <span class="detail-label">Move-in Date</span>
