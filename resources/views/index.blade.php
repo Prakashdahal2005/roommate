@@ -20,7 +20,7 @@
 
             <a href="{{ route('profile.show',$profile) }}" class="profile-name">{{ $profile->display_name }}</a>
             <div class="profile-meta">
-                Budget: ₹{{ number_format($profile->budget_min) }} - ₹{{ number_format($profile->budget_max) }}
+                Budget: Rs.{{ number_format($profile->budget_min) }} - Rs. {{ number_format($profile->budget_max) }}
             </div>
             <div class="badges">
                 <span class="badge info">{{ str_replace('_',' ', $profile->schedule) }}</span>
