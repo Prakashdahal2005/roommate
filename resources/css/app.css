@@ -82,3 +82,123 @@ main { padding: 1rem; }
 [data-theme="dark"] .badge.warn { background: #3D2A12; color: #FFD6A5; border-color: #C93400; }
 [data-theme="dark"] .btn-outline { background: #2C2C2E; color: #EBEBF5; border-color: #3A3A3C; }
 [data-theme="dark"] .btn-outline:hover { background: #3A3A3C; }
+<<<<<<< Updated upstream
+=======
+
+
+/* ===== Auth / Login page: improved layout to match home page ===== */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(180deg, #F8FAFF 0%, #F3F6FF 100%);
+}
+
+[data-theme="dark"] .auth-wrapper {
+    background: linear-gradient(180deg, #0F1113 0%, #17181A 100%);
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 920px;
+    border-radius: 14px;
+    padding: 0;
+    background: transparent;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 1.5rem;
+    align-items: stretch;
+}
+
+/* left panel (hero-like) */
+.auth-side {
+    border-radius: 14px 6px 6px 14px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+    background: linear-gradient(180deg, rgba(10,132,255,0.06) 0%, rgba(10,132,255,0.02) 100%);
+    border: 1px solid rgba(10,132,255,0.06);
+    box-shadow: 0 8px 30px rgba(10,132,255,0.04);
+}
+[data-theme="dark"] .auth-side {
+    background: linear-gradient(180deg, rgba(10,132,255,0.06) 0%, transparent 100%);
+    border-color: rgba(10,132,255,0.06);
+}
+
+/* short feature list to mirror homepage feel */
+.auth-side h2 { margin: 0; font-size: 1.25rem; color: #0A84FF; font-weight:700; }
+.auth-side p { margin: 0; color: #374151; font-size: .95rem; }
+[data-theme="dark"] .auth-side h2 { color: #7DB4FF; }
+[data-theme="dark"] .auth-side p { color: #B7BAC0; }
+
+.form-group { margin-bottom: 12px; }
+
+.auth-form {
+    border-radius: 6px;
+    padding: 2rem;
+    background: var(--card-bg, #fff);
+    border: 1px solid #E6E6F0;
+    box-shadow: 0 12px 36px rgba(16,24,40,0.06);
+}
+[data-theme="dark"] .auth-form {
+    --card-bg: #1E1E20;
+    border-color: #2C2C2E;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.6);
+}
+
+/* compact header inside form */
+.auth-header { text-align:center; margin-bottom:1rem; }
+.auth-header img { display:block; margin: 0 auto 12px; max-width: 120px; }
+.auth-header .auth-title { margin:0; font-size:1.125rem; font-weight:700; color:#111827; }
+[data-theme="dark"] .auth-header .auth-title { color:#FFFFFF; }
+.auth-header .auth-subtitle { margin:6px 0 0; color:#6B7280; font-size:.95rem; }
+[data-theme="dark"] .auth-header .auth-subtitle { color:#A9A9AE; }
+
+/* make form inputs and actions fit the new layout */
+.form-actions { display:flex; gap:12px; align-items:center; justify-content:space-between; margin-top:8px; }
+.input { box-sizing: border-box; }
+
+/* social / small buttons */
+.social-row { display:flex; gap:10px; justify-content:center; margin-top:10px; }
+.btn-social { padding:8px 12px; border-radius:10px; font-weight:600; font-size:.9rem; }
+
+/* errors/status */
+.form-status { margin: .5rem 0 1rem; color:#dc2626; font-size:.90rem; text-align:center; }
+[data-theme="dark"] .form-status { color:#ffb4b4; }
+
+/* ===== Dark-mode fixes: make form text readable ===== */
+[data-theme="dark"] .auth-form,
+[data-theme="dark"] .auth-card,
+[data-theme="dark"] .auth-side,
+[data-theme="dark"] .auth-header,
+[data-theme="dark"] .auth-subtitle {
+    color: #FFFFFF;
+}
+
+[data-theme="dark"] .input {
+    color: #FFFFFF !important;
+    background: #2C2C2E;
+    border-color: #3A3A3C;
+}
+
+[data-theme="dark"] .auth-form .input::placeholder {
+    color: #BFC2C6; /* readable light placeholder */
+    opacity: 1;
+}
+
+/* errors / helper text */
+[data-theme="dark"] .profile-meta,
+[data-theme="dark"] .form-status {
+    color: #ffb4b4;
+}
+
+/* helper links / small text */
+[data-theme="dark"] .helper-link,
+[data-theme="dark"] .auth-subtitle {
+    color: #DDE8FF;
+}
+>>>>>>> Stashed changes
