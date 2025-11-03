@@ -83,7 +83,10 @@ main { padding: 1rem; }
 [data-theme="dark"] .btn-outline { background: #2C2C2E; color: #EBEBF5; border-color: #3A3A3C; }
 [data-theme="dark"] .btn-outline:hover { background: #3A3A3C; }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 
 
 /* ===== Auth / Login page: improved layout to match home page ===== */
@@ -200,5 +203,9 @@ main { padding: 1rem; }
 [data-theme="dark"] .helper-link,
 [data-theme="dark"] .auth-subtitle {
     color: #DDE8FF;
+<<<<<<< Updated upstream
+}
+>>>>>>> Stashed changes
+=======
 }
 >>>>>>> Stashed changes
