@@ -4,35 +4,70 @@
 @section('title', $profile->display_name)
 
 @section('content')
-<div class="container mx-auto p-4">
-    <div class="bg-white shadow rounded-lg p-6 max-w-lg mx-auto">
-        {{-- Profile Picture --}}
-        <div class="text-center mb-4">
-            @if($profile->profile_picture)
-                <img src="{{ asset('storage/' . $profile->profile_picture) }}" alt="{{ $profile->display_name }}" class="w-32 h-32 rounded-full object-cover mx-auto">
-            @else
-                <div class="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center mx-auto">
-                    <span class="text-gray-500">No Image</span>
-                </div>
-            @endif
+<div class="profile-container">
+    <div class="profile-header">
+        @if($profile->profile_picture)
+            <img src="{{ asset('storage/' . $profile->profile_picture) }}" alt="{{ $profile->display_name }}" class="profile-picture">
+        @else
+            <div class="profile-picture flex items-center justify-center">
+                <span class="text-gray-500">No Image</span>
+            </div>
+        @endif
+        <h2 class="profile-name">{{ $profile->display_name }}</h2>
+        <p class="profile-bio">{{ $profile->bio }}</p>
+    </div>
+
+    <div class="profile-details">
+        <div class="profile-detail-group">
+            <div class="profile-detail-item">
+                <span class="detail-label">Age</span>
+                <span class="detail-value">{{ $profile->age }}</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="detail-label">Gender</span>
+                <span class="detail-value">{{ ucfirst($profile->gender) }}</span>
+            </div>
         </div>
 
-        {{-- Basic Info --}}
-        <h2 class="text-2xl font-bold text-center mb-2">{{ $profile->display_name }}</h2>
-        <p class="text-center text-gray-600 mb-4">{{ $profile->bio }}</p>
+        <div class="profile-detail-group">
+            <div class="profile-detail-item">
+                <span class="detail-label">Budget Range</span>
+                <span class="detail-value">Rs. {{ $profile->budget_min }} - Rs. {{ $profile->budget_max }}</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="detail-label">Move-in Date</span>
+                <span class="detail-value">{{ $profile->move_in_date->format('M d, Y') }}</span>
+            </div>
+        </div>
 
-        {{-- Details --}}
-        <ul class="space-y-2">
-            <li><strong>Age:</strong> {{ $profile->age }}</li>
-            <li><strong>Gender:</strong> {{ ucfirst($profile->gender) }}</li>
-            <li><strong>Budget:</strong> ${{ $profile->budget_min }} - ${{ $profile->budget_max }}</li>
-            <li><strong>Move-in Date:</strong> {{ $profile->move_in_date->format('M d, Y') }}</li>
-            <li><strong>Cleanliness:</strong> {{ ucfirst($profile->cleanliness) }}</li>
-            <li><strong>Schedule:</strong> {{ ucfirst($profile->schedule) }}</li>
-            <li><strong>Smokes:</strong> {{ $profile->smokes ? 'Yes' : 'No' }}</li>
-            <li><strong>Pets Allowed:</strong> {{ $profile->pets_ok ? 'Yes' : 'No' }}</li>
-            <li><strong>Status:</strong> {{ $profile->is_active ? 'Active' : 'Inactive' }}</li>
-        </ul>
+        <div class="profile-detail-group">
+            <div class="profile-detail-item">
+                <span class="detail-label">Cleanliness</span>
+                <span class="detail-value">{{ ucfirst($profile->cleanliness) }}</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="detail-label">Schedule</span>
+                <span class="detail-value">{{ ucfirst($profile->schedule) }}</span>
+            </div>
+        </div>
+
+        <div class="profile-detail-group">
+            <div class="profile-detail-item">
+                <span class="detail-label">Smokes</span>
+                <span class="detail-value">{{ $profile->smokes ? 'Yes' : 'No' }}</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="detail-label">Pets Allowed</span>
+                <span class="detail-value">{{ $profile->pets_ok ? 'Yes' : 'No' }}</span>
+            </div>
+        </div>
+
+        <div class="profile-detail-group">
+            <div class="profile-detail-item">
+                <span class="detail-label">Status</span>
+                <span class="detail-value">{{ $profile->is_active ? 'Active' : 'Inactive' }}</span>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

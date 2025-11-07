@@ -1,23 +1,24 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Login</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
-    <h2>Login</h2>
-    <form action="{{ route('login.submit') }}" method="POST">
-        @csrf
-        <label for="email">Email:</label><br>
-        <input type="email" id="email" name="email" required><br><br>
+    <div class="auth-wrapper">
+        <div class="auth-card" role="main" aria-labelledby="login-title">
+            <div class="auth-side" aria-hidden="true">
+                <h2>Find the right roommate</h2>
+                <p>Browse profiles, filter by preferences and message matches — just like the home page experience.</p>
 
-        <label for="password">Password:</label><br>
-        <input type="password" id="password" name="password" required><br><br>
+                <ul style="margin-top:1rem; padding-left:1.15rem; color:#374151;">
+                    <li>Verified profiles</li>
+                    <li>Smart matching</li>
+                    <li>Secure messaging</li>
+                </ul>
 
-<<<<<<< Updated upstream
-        <button type="submit">Login</button>
-    </form>
-    Dont have an account? <a href="{{ route('register') }}">Register here</a>
-=======
                 <p style="margin-top:1rem; font-size:.85rem; color:#6B7280;">New here? Create an account to get personalized suggestions.</p>
             </div>
 
@@ -73,11 +74,11 @@
                         @endif
                     </div>
 
-                    <!-- social sign-in removed -->
+                    <!-- Optional: keep divider for spacing balance -->
+                    <div class="rule" aria-hidden="true" style="margin-top:1rem; visibility:hidden;"></div>
                 </form>
             </div>
         </div>
     </div>
->>>>>>> Stashed changes
 </body>
 </html>
