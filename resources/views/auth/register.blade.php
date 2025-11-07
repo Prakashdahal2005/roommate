@@ -53,9 +53,37 @@
     <label><input type="checkbox" name="pets_ok" value="1" {{ old('pets_ok')?'checked':'' }}> Pets OK</label>
     <label><input type="checkbox" name="is_active" value="1" {{ old('is_active')?'checked':'' }}> Active</label>
 
+<<<<<<< Updated upstream
         <button type="submit">Register</button>
     </form>
     Already have an account? <a href="{{ route('login') }}">Login here</a>
+=======
+                    <div class="form-actions" style="align-items:center;">
+                        <div style="font-size:.90rem; color:#6B7280;">
+                            <label style="display:flex; gap:8px; align-items:center;">
+                                <input type="checkbox" name="terms" style="width:16px;height:16px;" {{ old('terms') ? 'checked' : '' }} />
+                                <span>I agree to the <a href="#" class="helper-link">terms</a></span>
+                            </label>
+                        </div>
+
+                        <div>
+                            @if (Route::has('login'))
+                                <a class="helper-link" href="{{ route('login') }}">Sign in</a>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div style="margin-top:1rem; display:flex; gap:8px; justify-content:space-between; align-items:center;">
+                        <button type="submit" class="btn btn-primary" style="min-width:140px;">Create account</button>
+                        <a href="{{ url('/') }}" class="btn btn-outline" style="padding:10px 12px;">Back to home</a>
+                    </div>
+
+                    <!-- social sign-up removed -->
+                </form>
+            </div>
+        </div>
+    </div>
+>>>>>>> Stashed changes
 </body>
 </html>
 
