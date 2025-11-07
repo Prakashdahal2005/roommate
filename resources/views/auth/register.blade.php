@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -84,12 +83,8 @@
                         <a href="{{ url('/') }}" class="btn btn-outline" style="padding:10px 12px;">Back to home</a>
                     </div>
 
-                    <div class="rule" aria-hidden="true" style="margin-top:1rem;"></div>
-
-                    <p style="text-align:center; font-size:.9rem; color:#6B7280;">Or register with</p>
-                    <div class="social-row">
-                        <a class="btn btn-outline btn-social" href="#" aria-label="Register with Google">Google</a>
-                    </div>
+                   
+                    <div class="rule" aria-hidden="true" style="margin-top:1rem; visibility:hidden;"></div>
                 </form>
             </div>
         </div>

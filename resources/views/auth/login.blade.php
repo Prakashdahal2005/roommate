@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -75,12 +74,8 @@
                         @endif
                     </div>
 
-                    <div class="rule" aria-hidden="true"></div>
-
-                    <p style="text-align:center; font-size:.9rem; color:#6B7280;">Or sign in with</p>
-                    <div class="social-row" aria-hidden="false">
-                        <a class="btn btn-outline btn-social" href="#" aria-label="Sign in with Google">Google</a>
-                    </div>
+                    <!-- Optional: keep divider for spacing balance -->
+                    <div class="rule" aria-hidden="true" style="margin-top:1rem; visibility:hidden;"></div>
                 </form>
             </div>
         </div>
