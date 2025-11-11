@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Discover Roommates</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Navbar -->
+  <nav>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+    <div class="auth-links">
+      <a href="#">Login</a>
+      <a href="#">Register</a>
+    </div>
+  </nav>
+
+  <!-- Header Section -->
+  <section class="header">
+    <button id="theme-toggle" title="Toggle theme">🌙</button>
+    <h1>Discover Roommates</h1>
+    <p>Browse profiles and click any name to view details.</p>
+  </section>
+
+  <!-- Profiles -->
+  <section class="profiles">
+    <!-- Example Card -->
+    <div class="card">
+      <div class="avatar">
+        <img src="images/profile1.jpg" alt="Profile image">
+      </div>
+      <h3>asha.labadie</h3>
+      <p>Budget: Rs.615 - Rs.3,051</p>
+      <div class="tags">
+        <span class="tag morning">morning person</span>
+        <span class="tag non-smoker">Non-smoker</span>
+      </div>
+      <div class="buttons">
+         <a href="profile.html" class="btn view-btn">View</a>
+        <button class="btn msg-btn">Message</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="avatar">
+        <img src="images/profile1.jpg" alt="Profile image">
+      </div>
+      <h3>elinor51</h3>
+      <p>Budget: Rs.2,147 - Rs.3,102</p>
+      <div class="tags">
+        <span class="tag morning">morning person</span>
+        <span class="tag non-smoker">Non-smoker</span>
+      </div>
+      <div class="buttons">
+        <button class="btn view-btn">View</button>
+        <button class="btn msg-btn">Message</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="avatar">
+        <img src="images/profile1.jpg" alt="Profile image">
+      </div>
+      <h3>rebeka.quitzon</h3>
+      <p>Budget: Rs.1,298 - Rs.1,894</p>
+      <div class="tags">
+        <span class="tag night">night owl</span>
+        <span class="tag smoker">Smokes</span>
+      </div>
+      <div class="buttons">
+        <button class="btn view-btn">View</button>
+        <button class="btn msg-btn">Message</button>
+      </div>
+    </div>
+
+     <div class="card">
+      <div class="avatar">
+        <img src="images/profile1.jpg" alt="Profile image">
+      </div>
+      <h3>elinor51</h3>
+      <p>Budget: Rs.2,147 - Rs.3,102</p>
+      <div class="tags">
+        <span class="tag morning">morning person</span>
+        <span class="tag non-smoker">Non-smoker</span>
+      </div>
+      <div class="buttons">
+        <button class="btn view-btn">View</button>
+        <button class="btn msg-btn">Message</button>
+      </div>
+    </div>
+
+     <div class="card">
+      <div class="avatar">
+        <img src="images/profile1.jpg" alt="Profile image">
+      </div>
+      <h3>elinor51</h3>
+      <p>Budget: Rs.2,147 - Rs.3,102</p>
+      <div class="tags">
+        <span class="tag morning">morning person</span>
+        <span class="tag non-smoker">Non-smoker</span>
+      </div>
+      <div class="buttons">
+        <button class="btn view-btn">View</button>
+        <button class="btn msg-btn">Message</button>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const toggle = document.getElementById("theme-toggle");
+    const body = document.body;
+
+    toggle.addEventListener("click", () => {
+      body.classList.toggle("dark-theme");
+      toggle.textContent = body.classList.contains("dark-theme") ? "☀️" : "🌙";
+    });
+  </script>
+</body>
+</html>
