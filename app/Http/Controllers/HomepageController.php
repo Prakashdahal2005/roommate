@@ -11,7 +11,7 @@ class HomepageController extends Controller
 {
         public function index(RoommateMatchServiceInterface $roommateMatchService)
     {
-        if(Auth::check())
+        if(Auth::check() && Auth::user()->profile)
         {
             $profiles = $roommateMatchService->findMatches(Auth::user()->profile,5);
         }

@@ -4,7 +4,6 @@ use App\Http\Controllers\Admin\ClusterController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Middleware\EnsureProfileExists;
 use Illuminate\Support\Facades\Route;
 
 //homepage route
@@ -27,12 +26,14 @@ Route::middleware('guest')->group(function () {
 // auth-only routes (logout, profile, etc.)
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profiles',[ProfileController::class,'create'])->name('profiles.create');
+    Route::post('/profiles',[ProfileController::class,'store'])->name('profiles.store');
+    Route::get('/profiles/edit', [ProfileController::class, 'edit'])->name('profiles.edit');
+    Route::put('/profiles', [ProfileController::class, 'update'])->name('profiles.update');
 });
 
 //guest can view profile
-Route::get('/profile/{profile}', [ProfileController::class, 'show'])->name('profile.show');
+Route::get('/profiles/{profile}', [ProfileController::class, 'show'])->name('profiles.show');
 
 
 // batch update for kmeans++ clusters ran by admin regularly (needs to be automated)

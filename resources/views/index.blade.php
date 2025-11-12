@@ -18,7 +18,7 @@
                 <div class="profile-avatar" style="background:#111827; display:flex; align-items:center; justify-content:center; color:#9ca3af;">NA</div>
             @endif
 
-            <a href="{{ route('profile.show',$profile) }}" class="profile-name">{{ $profile->display_name }}</a>
+            <a href="{{ route('profiles.show',$profile) }}" class="profile-name">{{ $profile->display_name }}</a>
             <div class="profile-meta">
                 Budget: Rs.{{ number_format($profile->budget_min) }} - Rs. {{ number_format($profile->budget_max) }}
             </div>
@@ -27,7 +27,7 @@
                 <span class="badge {{ $profile->smokes ? 'warn' : 'success' }}">{{ $profile->smokes ? 'Smokes' : 'Non-smoker' }}</span>
             </div>
             <div class="profile-actions">
-                <a class="btn btn-primary" href="{{ route('profile.show',$profile) }}">View</a>
+                <a class="btn btn-primary" href="{{ route('profiles.show',$profile) }}">View</a>
                 <button class="btn btn-outline" type="button">Message</button>
             </div>
         </article>
