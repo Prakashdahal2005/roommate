@@ -36,4 +36,4 @@ Route::get('/profile/{profile}', [ProfileController::class, 'show'])->name('prof
 
 
 // batch update for kmeans++ clusters ran by admin regularly (needs to be automated)
-Route::get('/runkmean', [ClusterController::class, 'kMeanBatchUpdate']);
+Route::get('/runkmean/{k}', [ClusterController::class, 'kMeanBatchUpdate']);
