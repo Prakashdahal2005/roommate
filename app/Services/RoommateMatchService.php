@@ -41,8 +41,13 @@ class RoommateMatchService implements RoommateMatchServiceInterface,KMeanBatchUp
         }
 
         // Assign cluster_id to user
-        $profile->cluster_id = $bestCluster->id;
-        $profile->save();
+        if ($bestCluster) {
+    $profile->cluster_id = $bestCluster->id;
+    $profile->save();
+} else {
+    $profile->cluster_id = null;
+    $profile->save();
+}
 
         // Get other profiles in the same cluster
         $clusterUsers = Profile::where('cluster_id', $bestCluster->id)

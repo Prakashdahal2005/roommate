@@ -13,7 +13,7 @@
             </div>
         @endif
 
-        <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('profiles.update') }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -30,11 +30,6 @@
             <div class="mb-3">
                 <label>Bio</label>
                 <textarea name="bio" class="w-full border p-2 rounded">{{ old('bio', $profile->bio) }}</textarea>
-            </div>
-
-            <div class="mb-3">
-                <label>Age</label>
-                <input type="number" name="age" value="{{ old('age', $profile->age) }}" class="w-full border p-2 rounded">
             </div>
 
             <div class="mb-3">
@@ -58,7 +53,7 @@
 
             <div class="mb-3">
                 <label>Move-in Date</label>
-                <input type="date" name="move_in_date" value="{{ old('move_in_date', $profile->move_in_date->format('Y-m-d')) }}" class="w-full border p-2 rounded">
+                <input type="date" name="move_in_date" value="{{ old('move_in_date', $profile->move_in_date?->format('Y-m-d')) }}" class="w-full border p-2 rounded">
             </div>
 
             <div class="mb-3">

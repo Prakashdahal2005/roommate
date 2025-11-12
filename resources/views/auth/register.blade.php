@@ -1,12 +1,18 @@
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Register</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
+
 <body>
+
+    @error('registration-error')
+    <div style="color: red;">{{ $message }}</div>
+    @enderror
     <div class="auth-wrapper">
         <div class="auth-card" role="main" aria-labelledby="register-title">
             <div class="auth-side" aria-hidden="true">
@@ -29,38 +35,36 @@
                     <p class="auth-subtitle">Sign up to discover matches</p>
                 </div>
 
-                <form method="POST" action="{{ route('register') }}" novalidate>
+                <form method="POST" action="{{ route('register') }}">
                     @csrf
 
                     @if (session('status'))
-                        <div class="form-status" role="status" aria-live="polite">{{ session('status') }}</div>
+                    <div class="form-status" role="status" aria-live="polite">{{ session('status') }}</div>
                     @endif
-
-                    <div class="form-group">
-                        <label for="name" class="sr-only">Name</label>
-                        <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus
-                               class="input" placeholder="Full name" />
-                        @error('name') <p class="profile-meta" role="alert">{{ $message }}</p> @enderror
-                    </div>
 
                     <div class="form-group">
                         <label for="email" class="sr-only">Email</label>
                         <input id="email" type="email" name="email" value="{{ old('email') }}" required
-                               class="input" placeholder="Email address" />
+                            class="input" placeholder="Email address" />
                         @error('email') <p class="profile-meta" role="alert">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="form-group">
                         <label for="password" class="sr-only">Password</label>
                         <input id="password" type="password" name="password" required
-                               class="input" placeholder="Password" />
+                            class="input" placeholder="Password" />
                         @error('password') <p class="profile-meta" role="alert">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="form-group">
                         <label for="password_confirmation" class="sr-only">Confirm Password</label>
                         <input id="password_confirmation" type="password" name="password_confirmation" required
-                               class="input" placeholder="Confirm password" />
+                            class="input" placeholder="Confirm password" />
+                    </div>
+                    <div class="form-group">
+                        <label for="age" class="sr-only">Age</label>
+                        <input id="age" type="number" min="18" name="age" required 
+                            class="input" placeholder="Age" />
                     </div>
 
                     <div class="form-actions" style="align-items:center;">
@@ -73,7 +77,7 @@
 
                         <div>
                             @if (Route::has('login'))
-                                <a class="helper-link" href="{{ route('login') }}">Sign in</a>
+                            <a class="helper-link" href="{{ route('login') }}">Sign in</a>
                             @endif
                         </div>
                     </div>
@@ -83,11 +87,12 @@
                         <a href="{{ url('/') }}" class="btn btn-outline" style="padding:10px 12px;">Back to home</a>
                     </div>
 
-                   
+
                     <div class="rule" aria-hidden="true" style="margin-top:1rem; visibility:hidden;"></div>
                 </form>
             </div>
         </div>
     </div>
 </body>
+
 </html>

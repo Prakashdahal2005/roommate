@@ -28,7 +28,7 @@
                 <li><a href="{{ route('register') }}">Register</a></li>
             @endguest
             @auth
-                <li><strong><a href="{{ route('profile.edit') }}">Your profile</a></strong></li>
+                <li><strong><a href="{{ route('profiles.edit') }}">Your profile</a></strong></li>
                 <li>
                     <form action="{{ route('logout') }}" method="POST" style="display:inline;">
                         @csrf
