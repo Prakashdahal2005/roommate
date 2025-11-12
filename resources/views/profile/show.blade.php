@@ -36,7 +36,7 @@
             </div>
             <div class="profile-detail-item">
                 <span class="detail-label">Move-in Date</span>
-                <span class="detail-value">{{ $profile->move_in_date->format('M d, Y') }}</span>
+                <span class="detail-value">{{ $profile->move_in_date?->format('M d, Y') }}</span>
             </div>
         </div>
 
