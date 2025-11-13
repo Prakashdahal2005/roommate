@@ -19,7 +19,6 @@ return new class extends Migration
             // Living Preferences
             $table->integer('budget_min')->nullable();
             $table->integer('budget_max')->nullable();
-            $table->date('move_in_date')->nullable();
             
             // Lifestyle
             $table->enum('cleanliness', ['very_clean', 'clean', 'average', 'messy'])->nullable();
@@ -29,6 +28,7 @@ return new class extends Migration
             
             // Status
             $table->boolean('is_active')->default(true);
+            $table->decimal('completion_score', 3, 2)->default(0);
             
             // Indexes for performance
             $table->index(['budget_min', 'budget_max']);

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,23 +14,28 @@ class Profile extends Model
         'display_name',
         'profile_picture',
         'bio',
-        'age',
         'gender',
         'budget_min',
         'budget_max',
-        'move_in_date',
         'cleanliness',
         'schedule',
         'smokes',
         'pets_ok',
-        'is_active'
     ];
     protected $casts = [
-    'move_in_date' => 'date',   // this will automatically convert string to Carbon
-    'smokes' => 'boolean',
-    'pets_ok' => 'boolean',
-    'is_active' => 'boolean',
-];
+        'smokes' => 'boolean',
+        'pets_ok' => 'boolean',
+        'is_active' => 'boolean',
+        'completion_score' => 'float',
+    ];
+
+    protected function completionScore(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => (float) $value,
+            set: fn($value) => max(0, min(1, (float) $value)),
+        );
+    }
 
     public function user()
     {

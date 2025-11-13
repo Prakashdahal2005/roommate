@@ -28,7 +28,11 @@
                 <li><a href="{{ route('register') }}">Register</a></li>
             @endguest
             @auth
-                <li><strong><a href="{{ route('profiles.edit') }}">Your profile</a></strong></li>
+            @if(auth()->user()->profile)
+                <li><strong><a href="{{ route('profiles.show',auth()->user()->profile) }}">Your profile</a></strong></li>
+                @else
+                <li><strong><a href="{{ route('profiles.create') }}">Create profile</a></strong></li>
+                @endif
                 <li>
                     <form action="{{ route('logout') }}" method="POST" style="display:inline;">
                         @csrf
@@ -42,4 +46,6 @@
 </nav>
 <main class="container">
 @yield('content')
+<script src="https://cdn-script.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+@stack('scripts')
 </main>

@@ -13,6 +13,16 @@
             </div>
         @endif
 
+        @if ($errors->any())
+            <div class="bg-red-100 text-red-700 p-2 mb-4 rounded">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('profiles.update') }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
@@ -33,11 +43,17 @@
             </div>
 
             <div class="mb-3">
+                <label>Age</label>
+                <input type="number" name="age" value="{{ old('age', $profile->age) }}" class="w-full border p-2 rounded">
+            </div>
+
+            <div class="mb-3">
                 <label>Gender</label>
                 <select name="gender" class="w-full border p-2 rounded">
-                    <option value="male" {{ $profile->gender === 'male' ? 'selected' : '' }}>Male</option>
-                    <option value="female" {{ $profile->gender === 'female' ? 'selected' : '' }}>Female</option>
-                    <option value="other" {{ $profile->gender === 'other' ? 'selected' : '' }}>Other</option>
+                    <option value="">Select gender (optional)</option>
+                    <option value="male" {{ old('gender', $profile->gender) === 'male' ? 'selected' : '' }}>Male</option>
+                    <option value="female" {{ old('gender', $profile->gender) === 'female' ? 'selected' : '' }}>Female</option>
+                    <option value="other" {{ old('gender', $profile->gender) === 'other' ? 'selected' : '' }}>Other</option>
                 </select>
             </div>
 
@@ -52,26 +68,32 @@
             </div>
 
             <div class="mb-3">
-                <label>Move-in Date</label>
-                <input type="date" name="move_in_date" value="{{ old('move_in_date', $profile->move_in_date?->format('Y-m-d')) }}" class="w-full border p-2 rounded">
-            </div>
-
-            <div class="mb-3">
                 <label>Cleanliness</label>
-                <input type="text" name="cleanliness" value="{{ old('cleanliness', $profile->cleanliness) }}" class="w-full border p-2 rounded">
+                <select name="cleanliness" class="w-full border p-2 rounded">
+                    <option value="">Select cleanliness (optional)</option>
+                    <option value="very_clean" {{ old('cleanliness', $profile->cleanliness) === 'very_clean' ? 'selected' : '' }}>Very Clean</option>
+                    <option value="clean" {{ old('cleanliness', $profile->cleanliness) === 'clean' ? 'selected' : '' }}>Clean</option>
+                    <option value="average" {{ old('cleanliness', $profile->cleanliness) === 'average' ? 'selected' : '' }}>Average</option>
+                    <option value="messy" {{ old('cleanliness', $profile->cleanliness) === 'messy' ? 'selected' : '' }}>Messy</option>
+                </select>
             </div>
 
             <div class="mb-3">
                 <label>Schedule</label>
-                <input type="text" name="schedule" value="{{ old('schedule', $profile->schedule) }}" class="w-full border p-2 rounded">
+                <select name="schedule" class="w-full border p-2 rounded">
+                    <option value="">Select schedule (optional)</option>
+                    <option value="morning_person" {{ old('schedule', $profile->schedule) === 'morning_person' ? 'selected' : '' }}>Morning Person</option>
+                    <option value="night_owl" {{ old('schedule', $profile->schedule) === 'night_owl' ? 'selected' : '' }}>Night Owl</option>
+                    <option value="flexible" {{ old('schedule', $profile->schedule) === 'flexible' ? 'selected' : '' }}>Flexible</option>
+                </select>
             </div>
 
             <div class="mb-3 flex space-x-4">
                 <label>
-                    <input type="checkbox" name="smokes" value="1" {{ $profile->smokes ? 'checked' : '' }}> Smokes
+                    <input type="checkbox" name="smokes" value="1" {{ old('smokes', $profile->smokes) ? 'checked' : '' }}> Smokes
                 </label>
                 <label>
-                    <input type="checkbox" name="pets_ok" value="1" {{ $profile->pets_ok ? 'checked' : '' }}> Pets OK
+                    <input type="checkbox" name="pets_ok" value="1" {{ old('pets_ok', $profile->pets_ok) ? 'checked' : '' }}> Pets OK
                 </label>
             </div>
 
