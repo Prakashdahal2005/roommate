@@ -35,18 +35,10 @@
             <div class="profile-meta">
                 Budget: Rs.{{ number_format($profile->budget_min) }} - Rs. {{ number_format($profile->budget_max) }}
             </div>
-          <div class="badges">
-    @if(!empty($profile->schedule))
-        <span class="badge info">{{ str_replace('_',' ', $profile->schedule) }}</span>
-    @endif
-
-    @if(isset($profile->smokes))
-        <span class="badge {{ $profile->smokes ? 'warn' : 'success' }}">
-            {{ $profile->smokes ? 'Smokes' : 'Non-smoker' }}
-        </span>
-    @endif
-</div>
-
+            <div class="badges">
+                <span class="badge info">{{ str_replace('_',' ', $profile->schedule) }}</span>
+                <span class="badge {{ $profile->smokes ? 'warn' : 'success' }}">{{ $profile->smokes ? 'Smokes' : 'Non-smoker' }}</span>
+            </div>
             <div class="profile-actions">
                 <a class="btn btn-primary" href="{{ route('profiles.show',$profile) }}">View</a>
                 <button class="btn btn-outline" type="button">Message</button>
