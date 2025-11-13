@@ -33,7 +33,6 @@ class ProfileController extends Controller
             /** @var \App\Models\User $user */
             $user = Auth::user();
             $user->profile()->create($data);
-
             return redirect()->route('home')->with('profile-create-success', 'Profile created successfully');
         } catch (Exception $e) {
             return back()->withErrors(['profile-creation' => 'Failed to create profile, please try again'])->withInput();
@@ -52,8 +51,8 @@ class ProfileController extends Controller
 
         $data = $updateProfileRequest->validated();
 
-        // Handle profile picture upload
-        if ($data['profile_picture']) {
+        // Handle profile picture upload safely
+        if ($updateProfileRequest->hasFile('profile_picture')) {
             $data['profile_picture'] = $updateProfileRequest->file('profile_picture')->store('profiles', 'public');
         }
 

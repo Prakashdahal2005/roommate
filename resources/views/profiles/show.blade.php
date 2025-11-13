@@ -34,10 +34,6 @@
                 <span class="detail-label">Budget Range</span>
                 <span class="detail-value">Rs. {{ $profile->budget_min }} - Rs. {{ $profile->budget_max }}</span>
             </div>
-            <div class="profile-detail-item">
-                <span class="detail-label">Move-in Date</span>
-                <span class="detail-value">{{ $profile->move_in_date?->format('M d, Y') }}</span>
-            </div>
         </div>
 
         <div class="profile-detail-group">
@@ -61,13 +57,9 @@
                 <span class="detail-value">{{ $profile->pets_ok ? 'Yes' : 'No' }}</span>
             </div>
         </div>
-
-        <div class="profile-detail-group">
-            <div class="profile-detail-item">
-                <span class="detail-label">Status</span>
-                <span class="detail-value">{{ $profile->is_active ? 'Active' : 'Inactive' }}</span>
-            </div>
-        </div>
     </div>
 </div>
+@if(auth()->user()->profile->id === $profile->id)
+<p><a style="color:blue;" href="{{ route('profiles.edit') }}">Edit profile</a></p>
+@endif
 @endsection

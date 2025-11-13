@@ -23,6 +23,9 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 });
 
+//guest can view profile
+
+
 // auth-only routes (logout, profile, etc.)
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -32,9 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/profiles', [ProfileController::class, 'update'])->name('profiles.update');
 });
 
-//guest can view profile
 Route::get('/profiles/{profile}', [ProfileController::class, 'show'])->name('profiles.show');
-
 
 // batch update for kmeans++ clusters ran by admin regularly (needs to be automated)
 Route::get('/runkmean/{k}', [ClusterController::class, 'kMeanBatchUpdate']);
