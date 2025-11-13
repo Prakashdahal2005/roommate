@@ -2,11 +2,11 @@
 
 @section('content')
 
-        @if(session('profile-create-success'))
-        <div class="bg-green-100 text-green-700 p-2 mb-4 rounded" id="success">
-            {{ session('profile-create-success') }}
-        </div>
-        @endif
+@if(session('profile-create-success'))
+<div class="bg-green-100 text-green-700 p-2 mb-4 rounded" id="success">
+    {{ session('profile-create-success') }}
+</div>
+@endif
 <div style="position: relative; margin-bottom: 16px;">
     <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle theme" style="position:absolute; top: 0; right: 0;">🌙</button>
     <section style="background:#0A84FF; color:#fff; padding: 24px; border-radius: 12px; text-align:center; margin-right: 56px;">
@@ -22,30 +22,38 @@
 
 <div class="profiles-grid">
     @forelse($profiles as $profile)
-        <article class="profile-card" tabindex="0">
-            @if($profile->profile_picture)
-                <img class="profile-avatar" src="{{ Storage::url($profile->profile_picture) }}" alt="{{ $profile->display_name }}">
-            @else
-                <div class="profile-avatar" style="background:#111827; display:flex; align-items:center; justify-content:center; color:#9ca3af;">NA</div>
+    <article class="profile-card" tabindex="0">
+        @if($profile->profile_picture)
+        <img class="profile-avatar" src="{{ Storage::url($profile->profile_picture) }}" alt="{{ $profile->display_name }}">
+        @else
+        <div class="profile-avatar" style="background:#111827; display:flex; align-items:center; justify-content:center; color:#9ca3af;">NA</div>
+        @endif
+        @if(auth()->user()?->profile)
+        <p class="m-2">{{ $profile->similarity }}%</p>
+        @endif
+        <a href="{{ route('profiles.show',$profile) }}" class="profile-name">{{ $profile->display_name }}</a>
+        <div class="profile-meta">
+            Budget: Rs.{{ number_format($profile->budget_min) }} - Rs. {{ number_format($profile->budget_max) }}
+        </div>
+        <div class="badges">
+            @if(!empty($profile->schedule))
+            <span class="badge info">{{ str_replace('_',' ', $profile->schedule) }}</span>
             @endif
-            @if(auth()->user()?->profile)
-            <p>{{ $profile->similarity }}%</p>
+
+            @if(!is_null($profile->smokes))
+            <span class="badge {{ $profile->smokes ? 'warn' : 'success' }}">
+                {{ $profile->smokes ? 'Smokes' : 'Non-smoker' }}
+            </span>
             @endif
-            <a href="{{ route('profiles.show',$profile) }}" class="profile-name">{{ $profile->display_name }}</a>
-            <div class="profile-meta">
-                Budget: Rs.{{ number_format($profile->budget_min) }} - Rs. {{ number_format($profile->budget_max) }}
-            </div>
-            <div class="badges">
-                <span class="badge info">{{ str_replace('_',' ', $profile->schedule) }}</span>
-                <span class="badge {{ $profile->smokes ? 'warn' : 'success' }}">{{ $profile->smokes ? 'Smokes' : 'Non-smoker' }}</span>
-            </div>
-            <div class="profile-actions">
-                <a class="btn btn-primary" href="{{ route('profiles.show',$profile) }}">View</a>
-                <button class="btn btn-outline" type="button">Message</button>
-            </div>
-        </article>
+        </div>
+
+        <div class="profile-actions">
+            <a class="btn btn-primary" href="{{ route('profiles.show',$profile) }}">View</a>
+            <button class="btn btn-outline" type="button">Message</button>
+        </div>
+    </article>
     @empty
-        <p>No profiles found.</p>
+    <p>No profiles found.</p>
     @endforelse
 </div>
 @push('scripts')
