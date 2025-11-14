@@ -29,7 +29,7 @@
         <div class="profile-avatar" style="background:#111827; display:flex; align-items:center; justify-content:center; color:#9ca3af;">NA</div>
         @endif
         @if(auth()->user()?->profile)
-        <p class="m-2">{{ $profile->similarity }}%</p>
+        <p>{{ $profile->similarity }}%</p>
         @endif
         <a href="{{ route('profiles.show',$profile) }}" class="profile-name">{{ $profile->display_name }}</a>
         <div class="profile-meta">
