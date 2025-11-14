@@ -40,7 +40,7 @@
             <span class="badge info">{{ str_replace('_',' ', $profile->schedule) }}</span>
             @endif
 
-            @if(!is_null($profile->smokes))
+            @if(isset($profile->smokes))
             <span class="badge {{ $profile->smokes ? 'warn' : 'success' }}">
                 {{ $profile->smokes ? 'Smokes' : 'Non-smoker' }}
             </span>

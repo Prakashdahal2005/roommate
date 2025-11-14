@@ -13,7 +13,7 @@ class HomepageController extends Controller
     {
         if(Auth::check() && Auth::user()->profile)
         {
-            $profiles = $roommateMatchService->findMatches(Auth::user()->profile,10);
+            $profiles = $roommateMatchService->findMatches(Auth::user()->profile,5);
         }
         else
         {
