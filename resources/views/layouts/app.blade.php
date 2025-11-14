@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html>
 <head>
     <title>@yield('title')</title>
     @vite(['resources/css/app.css','resources/js/app.js'])
@@ -15,6 +17,7 @@
         [data-theme="dark"] .theme-toggle:hover { background:#3A3A3C; }
     </style>
 </head>
+<body>
 <nav>
     <div class="container">
         <ul>
@@ -28,15 +31,11 @@
                 <li><a href="{{ route('register') }}">Register</a></li>
             @endguest
             @auth
-            @if(auth()->user()->profile)
                 <li><strong><a href="{{ route('profiles.show',auth()->user()->profile) }}">Your profile</a></strong></li>
-                @else
-                <li><strong><a href="{{ route('profiles.create') }}">Create profile</a></strong></li>
-                @endif
                 <li>
                     <form action="{{ route('logout') }}" method="POST" style="display:inline;">
                         @csrf
-                        <button type="submit" class="btn btn-outline">Logout ({{ auth()->user()->email ?? 'User' }})</button>
+                        <button type="submit" class="btn btn-outline">Logout ({{ auth()->user()->profile->display_name ?? 'User' }})</button>
                     </form>
                 </li>
             @endauth
@@ -49,3 +48,5 @@
 <script src="https://cdn-script.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 @stack('scripts')
 </main>
+</body>
+</html>
