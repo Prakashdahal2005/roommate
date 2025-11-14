@@ -16,28 +16,6 @@ class ProfileController extends Controller
     {
         return view('profiles.show', compact('profile'));
     }
-    public function create()
-    {
-        return view('profiles.create');
-    }
-
-    public function store(StoreProfileRequest $storeProfileRequest)
-    {
-        $data = $storeProfileRequest->validated();
-        // Handle profile picture upload
-        if ($storeProfileRequest->hasFile('profile_picture')) {
-            $data['profile_picture'] = $storeProfileRequest->file('profile_picture')->store('profiles', 'public');
-        }
-
-        try {
-            /** @var \App\Models\User $user */
-            $user = Auth::user();
-            $user->profile()->create($data);
-            return redirect()->route('home')->with('profile-create-success', 'Profile created successfully');
-        } catch (Exception $e) {
-            return back()->withErrors(['profile-creation' => 'Failed to create profile, please try again'])->withInput();
-        }
-    }
 
 
     public function edit()
@@ -55,9 +33,16 @@ class ProfileController extends Controller
         if ($updateProfileRequest->hasFile('profile_picture')) {
             $data['profile_picture'] = $updateProfileRequest->file('profile_picture')->store('profiles', 'public');
         }
-
-        $profile->update($data);
-
-        return redirect()->route('profiles.show', $profile)->with('success', 'Profile updated successfully!');
+        try{
+            $profile->update($data);
+            return redirect()->route('profiles.show', $profile)->with('success', 'Profile updated successfully!');
     }
+    catch(Exception $e)
+    {
+        return back()->with('error', 'Error on updating profile');
+    }
+        }
+        
+
+        
 }

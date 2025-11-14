@@ -25,8 +25,9 @@ class AuthController extends Controller
         try{
                 $user = User::create($data);
                 Auth::login($user);
+                $user->profile()->create([]);
                 $request->session()->regenerate();
-                return redirect()->route('profiles.create');
+                return redirect()->route('profiles.edit');
         }
         catch(Exception $e)
         {

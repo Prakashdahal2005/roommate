@@ -43,11 +43,6 @@
             </div>
 
             <div class="mb-3">
-                <label>Age</label>
-                <input type="number" name="age" value="{{ old('age', $profile->age) }}" class="w-full border p-2 rounded">
-            </div>
-
-            <div class="mb-3">
                 <label>Gender</label>
                 <select name="gender" class="w-full border p-2 rounded">
                     <option value="">Select gender (optional)</option>
@@ -89,9 +84,11 @@
             </div>
 
             <div class="mb-3 flex space-x-4">
+                <input type="hidden" name="smokes" value="0">
                 <label>
                     <input type="checkbox" name="smokes" value="1" {{ old('smokes', $profile->smokes) ? 'checked' : '' }}> Smokes
                 </label>
+                <input type="hidden" name="pets_ok" value="0">
                 <label>
                     <input type="checkbox" name="pets_ok" value="1" {{ old('pets_ok', $profile->pets_ok) ? 'checked' : '' }}> Pets OK
                 </label>

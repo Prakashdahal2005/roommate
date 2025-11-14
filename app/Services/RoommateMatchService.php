@@ -13,10 +13,10 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
 {
     private array $featureRanges = [];
     private array $globalDefaults = [];
+    private array $featureWeights = [];
 
     public function __construct()
     {
-        // Compute global statistics to fill nulls during algorithm
         $profiles = Profile::all();
         if ($profiles->isNotEmpty()) {
             $this->globalDefaults = [
@@ -30,11 +30,23 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
                 'pets_ok' => 0,
             ];
         }
-    }
 
-    /**
-     * Find top N matches for a user based on Euclidean distance
-     */
+        $rawWeights = [
+            0 => 0.20, // age
+            1 => 0.25, // gender
+            2 => 0.15, // budget_min
+            3 => 0.15, // budget_max
+            4 => 0.15, // cleanliness
+            5 => 0.05, // schedule
+            6 => 0.03, // smokes
+            7 => 0.02, // pets_ok
+        ];
+
+        $sum = array_sum($rawWeights) ?: 1;
+        foreach ($rawWeights as $i => $w) {
+            $this->featureWeights[$i] = $w / $sum;
+        }
+    }
 
     public function findMatches(Profile $profile, int $limit = 50): Collection
     {
@@ -42,15 +54,17 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         if ($profiles->isEmpty()) return collect();
 
         $this->computeFeatureRanges($profiles);
-
-        // Clone profile to avoid mutating DB object
+        $completion_score = $profile->completion_score;
         $userProfile = clone $profile;
-        $userVector = $this->normalizeVector($this->profileToVector($userProfile, true));
+
+        $userVector = $this->applyFeatureWeights(
+            $this->normalizeVector($this->profileToVector($userProfile, true))
+        );
 
         $clusters = DB::table('clusters')->get();
-
         $bestCluster = null;
         $bestScore = INF;
+
         foreach ($clusters as $cluster) {
             $centroid = json_decode($cluster->vector, true);
             $distance = $this->euclideanDistance($userVector, $centroid);
@@ -60,71 +74,94 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
             }
         }
 
-        // Assign cluster_id to user
-        $profile->cluster_id = $bestCluster?->id;
-        $profile->save();
+        if ($bestCluster) {
+            $profile->cluster_id = $bestCluster->id;
+            $profile->save();
+        }
 
-        // Get other profiles in the same cluster
-        $clusterUsers = Profile::where('cluster_id', $bestCluster?->id)
-            ->where('id', '<>', $profile->id)
-            ->get();
+        $clusterUsers = $bestCluster
+            ? Profile::where('cluster_id', $bestCluster->id)
+                ->where('id', '<>', $profile->id)
+                ->get()
+            : collect();
 
-        // Map similarity and attach to profile instance
-        $matchedProfiles = $clusterUsers->map(function ($p) use ($userVector) {
+        $matchedProfiles = $clusterUsers->map(function ($p) use ($completion_score, $userVector, $userProfile) {
             $pClone = clone $p;
-            $vector = $this->normalizeVector($this->profileToVector($pClone, true));
-            $distance = $this->euclideanDistance($userVector, $vector);
-            $similarity = (1 - min($distance, 1)) * 100; // percentage
-            $p->setAttribute('similarity', round($similarity, 2)); // attach similarity
-            return $p;
-        })->sortByDesc('similarity')->take($limit);
+            $vector = $this->applyFeatureWeights(
+                $this->normalizeVector($this->profileToVector($pClone, true))
+            );
 
-        return $matchedProfiles->values(); // return as Collection of Profile instances
+            $distance = $this->euclideanDistance($userVector, $vector);
+            $similarity = (1 - min($distance, 1)) * $completion_score * 100;
+
+            // --- Improved budget adjustment ---
+            $budgetMin1 = $userProfile->budget_min;
+            $budgetMax1 = $userProfile->budget_max;
+            $budgetMin2 = $pClone->budget_min;
+            $budgetMax2 = $pClone->budget_max;
+            $budgetAdjustment = 0;
+
+            if ($budgetMin1 !== null && $budgetMax1 !== null && $budgetMin2 !== null && $budgetMax2 !== null) {
+                $overlapMin = max($budgetMin1, $budgetMin2);
+                $overlapMax = min($budgetMax1, $budgetMax2);
+
+                if ($overlapMax >= $overlapMin) {
+                    // Reward proportional to overlap
+                    $budgetAdjustment = ($overlapMax - $overlapMin) / max($budgetMax1 - $budgetMin1, 1);
+                } else {
+                    // Punish proportional to distance
+                    $distance = max($budgetMin2 - $budgetMax1, $budgetMin1 - $budgetMax2);
+                    $rangeSize = max($budgetMax1 - $budgetMin1, 1);
+                    $budgetAdjustment = - min(1, $distance / $rangeSize);
+                }
+            }
+
+            $similarity += $budgetAdjustment * 30; // stronger impact
+            $similarity = max(0, min(100, $similarity));
+
+            $p->setAttribute('similarity', round($similarity, 2));
+            return $p;
+        })->sortByDesc('similarity')
+          ->take($limit);
+
+        return $matchedProfiles->values();
     }
 
-
-    /**
-     * Admin method: Recalculate KMeans clusters and store in clusters table
-     */
-    public function recalcClusters(int $k = 5): void
+    public function recalcClusters(int $k = 4): void
     {
         $profiles = Profile::all();
         if ($profiles->isEmpty()) return;
 
         $this->computeFeatureRanges($profiles);
-
         $samples = [];
         foreach ($profiles as $profile) {
-            $samples[$profile->id] = $this->normalizeVector($this->profileToVector(clone $profile, true));
+            $normalized = $this->normalizeVector($this->profileToVector(clone $profile, true));
+            $weighted = $this->applyFeatureWeights($normalized);
+            $samples[$profile->id] = $weighted;
         }
 
-        // KMeans++ clustering
         $kmeans = new KMeans($k, KMeans::INIT_KMEANS_PLUS_PLUS);
         $clusters = $kmeans->cluster(array_values($samples));
 
-        // First, set all cluster_ids to NULL
         Profile::query()->update(['cluster_id' => null]);
-
-        // Clear existing clusters
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         DB::table('clusters')->truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // Save centroids and update profile cluster_ids
-        foreach ($clusters as $clusterIndex => $clusterSamples) {
+        foreach ($clusters as $clusterSamples) {
             $centroid = $this->computeCentroid($clusterSamples);
 
-            // Insert centroid and get the auto-generated ID
             $clusterId = DB::table('clusters')->insertGetId([
                 'vector' => json_encode($centroid),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-            // Assign profiles to cluster
             foreach ($clusterSamples as $sample) {
-                $profileId = array_search($sample, $samples);
-                Profile::where('id', $profileId)->update(['cluster_id' => $clusterId]);
+                $profileId = array_search($sample, $samples, true);
+                if ($profileId !== false) {
+                    Profile::where('id', $profileId)->update(['cluster_id' => $clusterId]);
+                }
             }
         }
     }
@@ -158,6 +195,16 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
             $normalized[$i] = $max > $min ? ($val - $min) / ($max - $min) : 0;
         }
         return $normalized;
+    }
+
+    private function applyFeatureWeights(array $vector): array
+    {
+        $weighted = [];
+        foreach ($vector as $i => $val) {
+            $w = $this->featureWeights[$i] ?? 0;
+            $weighted[$i] = $val * $w;
+        }
+        return $weighted;
     }
 
     private function computeFeatureRanges($profiles): void
