@@ -15,6 +15,7 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
     private array $featureRanges = [];
     private array $globalDefaults = [];
     private array $featureWeights = [];
+    private array $featureWeights = [];
 
     public function __construct()
     {
@@ -58,6 +59,10 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
 
         $completion_score = $profile->completion_score;
         $userProfile = clone $profile;
+
+        $userVector = $this->applyFeatureWeights(
+            $this->normalizeVector($this->profileToVector($userProfile, true))
+        );
 
         $userVector = $this->applyFeatureWeights(
             $this->normalizeVector($this->profileToVector($userProfile, true))
@@ -247,6 +252,16 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
             $normalized[$i] = $max > $min ? ($val - $min) / ($max - $min) : 0;
         }
         return $normalized;
+    }
+
+    private function applyFeatureWeights(array $vector): array
+    {
+        $weighted = [];
+        foreach ($vector as $i => $val) {
+            $w = $this->featureWeights[$i] ?? 0;
+            $weighted[$i] = $val * $w;
+        }
+        return $weighted;
     }
 
     private function applyFeatureWeights(array $vector): array
