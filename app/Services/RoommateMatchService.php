@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Phpml\Clustering\KMeans;
 use App\Contracts\RoommateMatchServiceInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchUpdateAdminInterface
 {
@@ -32,14 +33,14 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         }
 
         $rawWeights = [
-            0 => 0.20, // age
-            1 => 0.25, // gender
-            2 => 0.15, // budget_min
-            3 => 0.15, // budget_max
-            4 => 0.15, // cleanliness
-            5 => 0.05, // schedule
-            6 => 0.03, // smokes
-            7 => 0.02, // pets_ok
+            0 => 0.20,
+            1 => 0.25,
+            2 => 0.15,
+            3 => 0.15,
+            4 => 0.15,
+            5 => 0.05,
+            6 => 0.03,
+            7 => 0.02,
         ];
 
         $sum = array_sum($rawWeights) ?: 1;
@@ -54,6 +55,7 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         if ($profiles->isEmpty()) return collect();
 
         $this->computeFeatureRanges($profiles);
+
         $completion_score = $profile->completion_score;
         $userProfile = clone $profile;
 
@@ -61,110 +63,147 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
             $this->normalizeVector($this->profileToVector($userProfile, true))
         );
 
-        $clusters = DB::table('clusters')->get();
-        $bestCluster = null;
-        $bestScore = INF;
+        $userVector = $this->applyFeatureWeights(
+            $this->normalizeVector($this->profileToVector($userProfile, true))
+        );
 
+        $clusters = DB::table('clusters')->get();
+        if ($clusters->isEmpty()) {
+            return collect();
+        }
+
+        /* -------------------------------------------------
+         * 1. Compute distance to ALL centroids
+         * ------------------------------------------------- */
+        $clusterDistances = [];
         foreach ($clusters as $cluster) {
             $centroid = json_decode($cluster->vector, true);
             $distance = $this->euclideanDistance($userVector, $centroid);
-            if ($distance < $bestScore) {
-                $bestScore = $distance;
-                $bestCluster = $cluster;
-            }
+            $clusterDistances[] = [
+                'cluster' => $cluster,
+                'distance' => $distance
+            ];
         }
 
-        if ($bestCluster) {
-            $profile->cluster_id = $bestCluster->id;
-            $profile->save();
-        }
+        /* -------------------------------------------------
+         * 2. Sort clusters by distance ascending
+         * ------------------------------------------------- */
+        usort($clusterDistances, fn($a, $b) => $a['distance'] <=> $b['distance']);
 
-        $clusterUsers = $bestCluster
-            ? Profile::where('cluster_id', $bestCluster->id)
+        /* -------------------------------------------------
+         * 3. Assign user to nearest cluster
+         * ------------------------------------------------- */
+        $bestCluster = $clusterDistances[0]['cluster'];
+        $profile->cluster_id = $bestCluster->id;
+        $profile->save();
+
+        /* -------------------------------------------------
+         * 4. Start collecting matches cluster-by-cluster
+         * ------------------------------------------------- */
+        $collected = collect();
+
+        foreach ($clusterDistances as $clusterInfo) {
+            if ($collected->count() >= $limit) break;
+
+            $clusterId = $clusterInfo['cluster']->id;
+
+            $clusterUsers = Profile::where('cluster_id', $clusterId)
                 ->where('id', '<>', $profile->id)
-                ->get()
-            : collect();
+                ->get();
 
-        $matchedProfiles = $clusterUsers->map(function ($p) use ($completion_score, $userVector, $userProfile) {
-            $pClone = clone $p;
-            $vector = $this->applyFeatureWeights(
-                $this->normalizeVector($this->profileToVector($pClone, true))
-            );
+            foreach ($clusterUsers as $p) {
+                if ($collected->count() >= $limit) break;
 
-            $distance = $this->euclideanDistance($userVector, $vector);
-            $similarity = (1 - min($distance, 1)) * $completion_score * 100;
+                $pClone = clone $p;
+                $vector = $this->applyFeatureWeights(
+                    $this->normalizeVector($this->profileToVector($pClone, true))
+                );
 
-            // --- Improved budget adjustment ---
-            $budgetMin1 = $userProfile->budget_min;
-            $budgetMax1 = $userProfile->budget_max;
-            $budgetMin2 = $pClone->budget_min;
-            $budgetMax2 = $pClone->budget_max;
-            $budgetAdjustment = 0;
+                $distance = $this->euclideanDistance($userVector, $vector);
+                $similarity = (1 - min($distance, 1)) * $completion_score * 100;
 
-            if ($budgetMin1 !== null && $budgetMax1 !== null && $budgetMin2 !== null && $budgetMax2 !== null) {
-                $overlapMin = max($budgetMin1, $budgetMin2);
-                $overlapMax = min($budgetMax1, $budgetMax2);
+                // --- Improved budget adjustment ---
+                $budgetMin1 = $userProfile->budget_min;
+                $budgetMax1 = $userProfile->budget_max;
+                $budgetMin2 = $pClone->budget_min;
+                $budgetMax2 = $pClone->budget_max;
+                $budgetAdjustment = 0;
 
-                if ($overlapMax >= $overlapMin) {
-                    // Reward proportional to overlap
-                    $budgetAdjustment = ($overlapMax - $overlapMin) / max($budgetMax1 - $budgetMin1, 1);
-                } else {
-                    // Punish proportional to distance
-                    $distance = max($budgetMin2 - $budgetMax1, $budgetMin1 - $budgetMax2);
-                    $rangeSize = max($budgetMax1 - $budgetMin1, 1);
-                    $budgetAdjustment = - min(1, $distance / $rangeSize);
+                if ($budgetMin1 !== null && $budgetMax1 !== null && $budgetMin2 !== null && $budgetMax2 !== null) {
+
+                    $overlapMin = max($budgetMin1, $budgetMin2);
+                    $overlapMax = min($budgetMax1, $budgetMax2);
+
+                    if ($overlapMax >= $overlapMin) {
+                        $budgetAdjustment = ($overlapMax - $overlapMin) / max($budgetMax1 - $budgetMin1, 1);
+                    } else {
+                        $distance2 = max($budgetMin2 - $budgetMax1, $budgetMin1 - $budgetMax2);
+                        $rangeSize = max($budgetMax1 - $budgetMin1, 1);
+                        $budgetAdjustment = -min(1, $distance2 / $rangeSize);
+                    }
                 }
+
+                $similarity += $budgetAdjustment * 30;
+                $similarity = max(0, min(100, $similarity));
+
+                $p->setAttribute('similarity', round($similarity, 2));
+                $collected->push($p);
             }
+        }
 
-            $similarity += $budgetAdjustment * 30; // stronger impact
-            $similarity = max(0, min(100, $similarity));
-
-            $p->setAttribute('similarity', round($similarity, 2));
-            return $p;
-        })->sortByDesc('similarity')
-          ->take($limit);
-
-        return $matchedProfiles->values();
+        /* -------------------------------------------------
+         * 5. Sort + final limit
+         * ------------------------------------------------- */
+        return $collected
+            ->sortByDesc('similarity')
+            ->take($limit)
+            ->values();
     }
+
 
     public function recalcClusters(int $k = 4): void
     {
-        $profiles = Profile::all();
-        if ($profiles->isEmpty()) return;
 
-        $this->computeFeatureRanges($profiles);
-        $samples = [];
-        foreach ($profiles as $profile) {
-            $normalized = $this->normalizeVector($this->profileToVector(clone $profile, true));
-            $weighted = $this->applyFeatureWeights($normalized);
-            $samples[$profile->id] = $weighted;
-        }
+            $profiles = Profile::all();
+            if ($profiles->isEmpty()) return;
 
-        $kmeans = new KMeans($k, KMeans::INIT_KMEANS_PLUS_PLUS);
-        $clusters = $kmeans->cluster(array_values($samples));
+            $this->computeFeatureRanges($profiles);
 
-        Profile::query()->update(['cluster_id' => null]);
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        DB::table('clusters')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            $samples = [];
+            foreach ($profiles as $profile) {
+                $normalized = $this->normalizeVector($this->profileToVector(clone $profile, true));
+                $weighted = $this->applyFeatureWeights($normalized);
+                $samples[$profile->id] = $weighted;
+            }
 
-        foreach ($clusters as $clusterSamples) {
-            $centroid = $this->computeCentroid($clusterSamples);
+            $kmeans = new KMeans($k, KMeans::INIT_KMEANS_PLUS_PLUS);
+            $clusters = $kmeans->cluster(array_values($samples));
 
-            $clusterId = DB::table('clusters')->insertGetId([
-                'vector' => json_encode($centroid),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            Profile::query()->update(['cluster_id' => null]);
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            DB::table('clusters')->truncate();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-            foreach ($clusterSamples as $sample) {
-                $profileId = array_search($sample, $samples, true);
-                if ($profileId !== false) {
-                    Profile::where('id', $profileId)->update(['cluster_id' => $clusterId]);
+            foreach ($clusters as $clusterSamples) {
+
+                $centroid = $this->computeCentroid($clusterSamples);
+
+                $clusterId = DB::table('clusters')->insertGetId([
+                    'vector' => json_encode($centroid),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                foreach ($clusterSamples as $sample) {
+                    $profileId = array_search($sample, $samples, true);
+                    if ($profileId !== false) {
+                        Profile::where('id', $profileId)->update(['cluster_id' => $clusterId]);
+                    }
                 }
             }
-        }
+
     }
+
 
     /* ---------------------- Helpers ---------------------- */
 

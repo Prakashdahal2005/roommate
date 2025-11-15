@@ -2,6 +2,7 @@
 
 @section('title', 'Edit Profile')
 
+
 @section('content')
 <div class="container mx-auto p-4">
     <div class="bg-white shadow rounded-lg p-6 max-w-lg mx-auto">
