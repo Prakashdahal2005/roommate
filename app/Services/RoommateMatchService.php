@@ -22,7 +22,7 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         if ($profiles->isNotEmpty()) {
             $this->globalDefaults = [
                 'age' => (int) round($profiles->avg('age')),
-                'gender' => 1,
+                'gender' => rand(1, 2),
                 'budget_min' => (int) round($profiles->avg('budget_min')),
                 'budget_max' => (int) round($profiles->avg('budget_max')),
                 'cleanliness' => 1,
@@ -31,6 +31,7 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
                 'pets_ok' => 0,
             ];
         }
+
 
         $rawWeights = [
             0 => 0.20,
@@ -164,44 +165,43 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
     public function recalcClusters(int $k = 4): void
     {
 
-            $profiles = Profile::all();
-            if ($profiles->isEmpty()) return;
+        $profiles = Profile::all();
+        if ($profiles->isEmpty()) return;
 
-            $this->computeFeatureRanges($profiles);
+        $this->computeFeatureRanges($profiles);
 
-            $samples = [];
-            foreach ($profiles as $profile) {
-                $normalized = $this->normalizeVector($this->profileToVector(clone $profile, true));
-                $weighted = $this->applyFeatureWeights($normalized);
-                $samples[$profile->id] = $weighted;
-            }
+        $samples = [];
+        foreach ($profiles as $profile) {
+            $normalized = $this->normalizeVector($this->profileToVector(clone $profile, true));
+            $weighted = $this->applyFeatureWeights($normalized);
+            $samples[$profile->id] = $weighted;
+        }
 
-            $kmeans = new KMeans($k, KMeans::INIT_KMEANS_PLUS_PLUS);
-            $clusters = $kmeans->cluster(array_values($samples));
+        $kmeans = new KMeans($k, KMeans::INIT_KMEANS_PLUS_PLUS);
+        $clusters = $kmeans->cluster(array_values($samples));
 
-            Profile::query()->update(['cluster_id' => null]);
-            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-            DB::table('clusters')->truncate();
-            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        Profile::query()->update(['cluster_id' => null]);
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::table('clusters')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-            foreach ($clusters as $clusterSamples) {
+        foreach ($clusters as $clusterSamples) {
 
-                $centroid = $this->computeCentroid($clusterSamples);
+            $centroid = $this->computeCentroid($clusterSamples);
 
-                $clusterId = DB::table('clusters')->insertGetId([
-                    'vector' => json_encode($centroid),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+            $clusterId = DB::table('clusters')->insertGetId([
+                'vector' => json_encode($centroid),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
 
-                foreach ($clusterSamples as $sample) {
-                    $profileId = array_search($sample, $samples, true);
-                    if ($profileId !== false) {
-                        Profile::where('id', $profileId)->update(['cluster_id' => $clusterId]);
-                    }
+            foreach ($clusterSamples as $sample) {
+                $profileId = array_search($sample, $samples, true);
+                if ($profileId !== false) {
+                    Profile::where('id', $profileId)->update(['cluster_id' => $clusterId]);
                 }
             }
-
+        }
     }
 
 
