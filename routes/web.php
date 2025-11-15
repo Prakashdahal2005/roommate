@@ -29,8 +29,6 @@ Route::middleware('guest')->group(function () {
 // auth-only routes (logout, profile, etc.)
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    Route::get('/profiles',[ProfileController::class,'create'])->name('profiles.create');
-    Route::post('/profiles',[ProfileController::class,'store'])->name('profiles.store');
     Route::get('/profiles/edit', [ProfileController::class, 'edit'])->name('profiles.edit');
     Route::put('/profiles', [ProfileController::class, 'update'])->name('profiles.update');
 });

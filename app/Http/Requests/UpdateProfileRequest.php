@@ -6,33 +6,28 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProfileRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    // public function authorize(): bool
-    // {
-    //     return false;
-    // }
+    public function authorize(): bool
+    {
+        return true; // allow authenticated users to update
+    }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            'display_name' => 'sometimes|string|max:255',
-            'profile_picture' => 'sometimes|nullable|image|max:2048',
-            'bio' => 'sometimes|nullable|string',
-            'gender' => 'sometimes|in:male,female,other',
-            'budget_min' => 'sometimes|numeric|min:0',
-            'budget_max' => 'sometimes|numeric|gte:budget_min',
-            'move_in_date' => 'sometimes|date',
-            'cleanliness' => 'sometimes|string',
-            'schedule' => 'sometimes|string',
-            'smokes' => 'sometimes|boolean',
-            'pets_ok' => 'sometimes|boolean',
+            'display_name'     => 'sometimes|nullable|string|max:255',
+            'profile_picture'  => 'sometimes|nullable|image|max:2048',
+            'bio'              => 'sometimes|nullable|string',
+            'gender'           => 'sometimes|nullable|in:male,female,other',
+            'budget_min'       => 'sometimes|nullable|numeric|min:0',
+            'budget_max'       => 'sometimes|nullable|numeric|gte:budget_min',
+            'move_in_date'     => 'sometimes|nullable|date',
+            'cleanliness'      => 'sometimes|nullable|in:very_clean,clean,average,messy',
+            'schedule'         => 'sometimes|nullable|in:morning_person,night_owl,flexible',
+            'smokes'           => 'sometimes|nullable|boolean',
+            'pets_ok'          => 'sometimes|nullable|boolean',
+            'is_active'        => 'sometimes|nullable|boolean',
+            'completion_score' => 'sometimes|nullable|numeric|min:0|max:1',
+            'cluster_id'       => 'sometimes|nullable|exists:clusters,id',
         ];
     }
 }

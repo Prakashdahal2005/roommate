@@ -11,11 +11,16 @@
     <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle theme" style="position:absolute; top: 0; right: 0;">🌙</button>
     <section style="background:#0A84FF; color:#fff; padding: 24px; border-radius: 12px; text-align:center; margin-right: 56px;">
         <h1 style="margin: 0 0 6px 0; font-size: 2rem; font-weight: 800;">Discover Roommates</h1>
-        @if((float)auth()->user()?->profile?->completion_score ===0.0)
-        <p style="margin: 0; font-size: 1.125rem; opacity: .95;">Browse profiles and click on name to view details.</p>
-        @else
-        <p style="margin: 0; font-size: 1.125rem; opacity: .95;">Your top matches , click on name to view details.</p>
+        @guest
+        <p style="margin: 0; font-size: 1.125rem; opacity: .95;">Browse profiles</p>
+        @endguest
+        @auth
+        <p style="margin: 2; font-size: 1.125rem; opacity: .95;">Your profile is {{ auth()->user()->profile->completion_score * 100 }} % complete</p>
+        @if((float)auth()->user()->profile->completion_score !== 1.0)
+        <p><a class="underline" href="{{ route('profiles.edit') }}">Complete Your Profile</a></p>
         @endif
+        <p style="margin: 2; font-size: 1.125rem; opacity: .95;">Your top matches</p>
+        @endauth
     </section>
 </div>
 
@@ -28,12 +33,12 @@
         @else
         <div class="profile-avatar" style="background:#111827; display:flex; align-items:center; justify-content:center; color:#9ca3af;">NA</div>
         @endif
-        @if(auth()->user()?->profile)
+        @auth
         <p>{{ $profile->similarity }}%</p>
-        @endif
+        @endauth
         <a href="{{ route('profiles.show',$profile) }}" class="profile-name">{{ $profile->display_name }}</a>
         <div class="profile-meta">
-            Budget: Rs.{{ number_format($profile->budget_min) }} - Rs. {{ number_format($profile->budget_max) }}
+            Budget: Rs.{{ number_format($profile->budget_min) ?? 0}} - Rs. {{ number_format($profile->budget_max) }}
         </div>
         <div class="badges">
             @if(!empty($profile->schedule))

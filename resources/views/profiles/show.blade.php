@@ -7,7 +7,7 @@
 <div class="profile-container">
     <div class="profile-header">
         @if($profile->profile_picture)
-            <img src="{{ asset('storage/' . $profile->profile_picture) }}" alt="{{ $profile->display_name }}" class="profile-picture">
+            <img class="max-w-60" src="{{ asset('storage/' . $profile->profile_picture) }}" alt="{{ $profile->display_name }}" class="profile-picture">
         @else
             <div class="profile-picture flex items-center justify-center">
                 <span class="text-gray-500">No Image</span>
@@ -19,10 +19,6 @@
 
     <div class="profile-details">
         <div class="profile-detail-group">
-            <div class="profile-detail-item">
-                <span class="detail-label">Age</span>
-                <span class="detail-value">{{ $profile->age }}</span>
-            </div>
             <div class="profile-detail-item">
                 <span class="detail-label">Gender</span>
                 <span class="detail-value">{{ ucfirst($profile->gender) }}</span>
@@ -59,7 +55,7 @@
         </div>
     </div>
 </div>
-@if(auth()->user()->profile->id === $profile->id)
+@if(auth()->user()?->profile->id === $profile->id)
 <p><a style="color:blue;" href="{{ route('profiles.edit') }}">Edit profile</a></p>
 @endif
 @endsection
