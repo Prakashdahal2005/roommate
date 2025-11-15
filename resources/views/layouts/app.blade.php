@@ -16,6 +16,7 @@
         [data-theme="dark"] .theme-toggle { background:#2C2C2E; color:#EBEBF5; border-color:#3A3A3C; }
         [data-theme="dark"] .theme-toggle:hover { background:#3A3A3C; }
     </style>
+    @stack('styles')
 </head>
 <body>
 <nav>

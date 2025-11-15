@@ -2,6 +2,95 @@
 @extends('layouts.app')
 
 @section('title', $profile->display_name)
+@push('styles')
+<style>
+    /* Profile container */
+.profile-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    font-family: Arial, sans-serif;
+}
+
+/* Header */
+.profile-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* Profile picture */
+.profile-picture {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #555;
+}
+
+/* Name & Bio */
+.profile-name {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 15px 0 5px;
+}
+
+.profile-bio {
+    font-size: 16px;
+    color: #555;
+}
+
+/* Profile details container */
+.profile-details {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Each detail group */
+.profile-detail-group {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+/* Individual detail item */
+.profile-detail-item {
+    flex: 1;
+    min-width: 150px;
+}
+
+.detail-label {
+    display: block;
+    font-weight: bold;
+    color: #333;
+}
+
+.detail-value {
+    display: block;
+    color: #555;
+    margin-top: 4px;
+}
+
+/* Edit link */
+a {
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+</style>
+@endpush
 
 @section('content')
 <div class="profile-container">

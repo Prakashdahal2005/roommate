@@ -14,10 +14,7 @@ class HomepageController extends Controller
     {
         if(Auth::check())
         {
-            if(!Cache::has('kmeans_lock'))
             $profiles = $roommateMatchService->findMatches(Auth::user()->profile,50);
-            else
-                return "<h1>Please wait a moment</h1>";
         }
         else
         {

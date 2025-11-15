@@ -15,7 +15,6 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
     private array $featureRanges = [];
     private array $globalDefaults = [];
     private array $featureWeights = [];
-    private array $featureWeights = [];
 
     public function __construct()
     {
@@ -164,16 +163,6 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
 
     public function recalcClusters(int $k = 4): void
     {
-        // Acquire a lock for up to 10 minutes
-        $lock = Cache::lock('kmeans_lock', 600);
-
-        if (!$lock->get()) {
-            // Someone else is running it
-            throw new \Exception("Cluster recalculation in progress. Try again later.");
-        }
-
-        try {
-            // ---- YOUR ORIGINAL CODE STARTS ----
 
             $profiles = Profile::all();
             if ($profiles->isEmpty()) return;
@@ -213,13 +202,6 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
                 }
             }
 
-
-            sleep(120);
-
-        } finally {
-            // release lock even if something breaks
-            $lock->release();
-        }
     }
 
 
@@ -252,16 +234,6 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
             $normalized[$i] = $max > $min ? ($val - $min) / ($max - $min) : 0;
         }
         return $normalized;
-    }
-
-    private function applyFeatureWeights(array $vector): array
-    {
-        $weighted = [];
-        foreach ($vector as $i => $val) {
-            $w = $this->featureWeights[$i] ?? 0;
-            $weighted[$i] = $val * $w;
-        }
-        return $weighted;
     }
 
     private function applyFeatureWeights(array $vector): array
