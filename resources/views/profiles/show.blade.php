@@ -55,7 +55,7 @@
         </div>
     </div>
 </div>
-@if(auth()->user()->profile->id === $profile->id)
+@if(auth()->user()?->profile->id === $profile->id)
 <p><a style="color:blue;" href="{{ route('profiles.edit') }}">Edit profile</a></p>
 @endif
 @endsection
