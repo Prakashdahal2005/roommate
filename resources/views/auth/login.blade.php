@@ -8,7 +8,8 @@
 </head>
 <body>
     <div class="auth-wrapper">
-        <div class="auth-card" role="main" aria-labelledby="login-title">
+        <div class="auth-card" role="main" aria-labelledby="login-title" style="position:relative;">
+            <button id="theme-toggle" class="btn btn-outline" type="button" aria-label="Toggle theme" title="Toggle theme" style="position:absolute; top:12px; right:12px; padding:8px 12px; border-radius:10px; font-size:16px;">🌙</button>
             <div class="auth-side" aria-hidden="true">
                 <h2>Find the right roommate</h2>
                 <p>Browse profiles, filter by preferences and message matches — just like the home page experience.</p>
