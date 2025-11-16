@@ -14,7 +14,8 @@
     <div style="color: red;">{{ $message }}</div>
     @enderror
     <div class="auth-wrapper">
-        <div class="auth-card" role="main" aria-labelledby="register-title">
+        <div class="auth-card" role="main" aria-labelledby="register-title" style="position:relative;">
+            <button id="theme-toggle" class="btn btn-outline" type="button" aria-label="Toggle theme" title="Toggle theme" style="position:absolute; top:12px; right:12px; padding:8px 12px; border-radius:10px; font-size:16px;">🌙</button>
             <div class="auth-side" aria-hidden="true">
                 <h2>Find the right roommate</h2>
                 <p>Create a profile, browse matches and start conversations — just like on the home page.</p>
