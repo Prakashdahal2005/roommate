@@ -4,7 +4,8 @@
 
 @section('content')
 <div class="container mx-auto p-4">
-    <div class="auth-form" style="max-width:720px; margin:0 auto;">
+    <div class="auth-form" style="max-width:720px; margin:0 auto; position:relative;">
+        <button id="theme-toggle" class="btn btn-outline" type="button" aria-label="Toggle theme" title="Toggle theme" style="position:absolute; top:12px; right:12px; padding:8px 12px; border-radius:10px; font-size:16px;">🌙</button>
         <h2 class="text-2xl font-bold text-center mb-4">Edit Profile</h2>
         <h1 class="m-4"><a  href="{{ route('home') }}" class="underline">Go to Home</a></h1>
 
