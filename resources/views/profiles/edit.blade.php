@@ -6,20 +6,11 @@
 <div class="container mx-auto p-4">
     <div class="auth-form" style="max-width:720px; margin:0 auto;">
         <h2 class="text-2xl font-bold text-center mb-4">Edit Profile</h2>
+        <h1 class="m-4"><a  href="{{ route('home') }}" class="underline">Go to Home</a></h1>
 
         @if(session('success'))
             <div class="bg-green-100 text-green-700 p-2 mb-4 rounded">
                 {{ session('success') }}
-            </div>
-        @endif
-
-        @if ($errors->any())
-            <div class="bg-red-100 text-red-700 p-2 mb-4 rounded">
-                <ul class="mb-0">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
             </div>
         @endif
 
@@ -35,6 +26,9 @@
             <div class="mb-3">
                 <label class="block font-semibold mb-1">Profile Picture</label>
                 <input type="file" name="profile_picture" class="w-full">
+                @error('profile_picture')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div class="mb-3">
@@ -50,6 +44,9 @@
                     <option value="female" {{ old('gender', $profile->gender) === 'female' ? 'selected' : '' }}>Female</option>
                     <option value="other" {{ old('gender', $profile->gender) === 'other' ? 'selected' : '' }}>Other</option>
                 </select>
+                @error('gender')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div class="mb-3">
@@ -71,6 +68,9 @@
                     <option value="average" {{ old('cleanliness', $profile->cleanliness) === 'average' ? 'selected' : '' }}>Average</option>
                     <option value="messy" {{ old('cleanliness', $profile->cleanliness) === 'messy' ? 'selected' : '' }}>Messy</option>
                 </select>
+                @error('cleanliness')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div class="mb-3">
@@ -81,6 +81,9 @@
                     <option value="night_owl" {{ old('schedule', $profile->schedule) === 'night_owl' ? 'selected' : '' }}>Night Owl</option>
                     <option value="flexible" {{ old('schedule', $profile->schedule) === 'flexible' ? 'selected' : '' }}>Flexible</option>
                 </select>
+                @error('schedule')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div class="mb-3 flex space-x-4">
