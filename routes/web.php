@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ClusterController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomepageController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +32,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/profiles/edit', [ProfileController::class, 'edit'])->name('profiles.edit');
     Route::put('/profiles', [ProfileController::class, 'update'])->name('profiles.update');
+    Route::get('/chat/{receiver}', [MessageController::class, 'show'])->name('chat.show');
+    Route::get('/messages/{userId}', [MessageController::class, 'fetch']);
+    Route::post('/messages', [MessageController::class, 'send']);
 });
 
 Route::get('/profiles/{profile}', [ProfileController::class, 'show'])->name('profiles.show');
