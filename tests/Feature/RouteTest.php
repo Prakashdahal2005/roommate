@@ -14,7 +14,7 @@ class RouteTest extends TestCase
     /** @test */
     public function homepage_loads()
     {
-        $this->get('/')->assertStatus(200);
+        $this->get('/')->assertOk();
     }
 
     /** @test */
