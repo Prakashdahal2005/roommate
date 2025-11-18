@@ -17,7 +17,7 @@
         @auth
         <p style="margin: 2; font-size: 1.125rem; opacity: .95;">Your profile is {{ auth()->user()->profile->completion_score * 100 }} % complete</p>
         @if((float)auth()->user()->profile->completion_score !== 1.0)
-        <p><a class="underline" href="{{ route('profiles.edit') }}">Complete Your Profile</a></p>
+        <p><a class="underline" href="{{ route('profiles.edit') }}">Complete Your Profile for better matches</a></p>
         @endif
         <p style="margin: 2; font-size: 1.125rem; opacity: .95;">Your top matches</p>
         @endauth

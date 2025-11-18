@@ -173,7 +173,7 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         if ($request->filled('age_min')) {
             $query->where('age', '>=', $request->age_min);
         }
-        
+
         if ($request->filled('age_max')) {
             $query->where('age', '<=', $request->age_max);
         }
@@ -318,5 +318,153 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
             $sum += ($val - ($b[$i] ?? 0)) ** 2;
         }
         return sqrt($sum);
+    }
+
+
+
+
+    /**
+     * Evaluate KMeans++ clustering vs pure Euclidean
+     * Returns optimal k, silhouette scores, precision & performance gains, and warning if clustering is ineffective.
+     */
+    public function evaluateClustering(): array
+    {
+        $profiles = Profile::all();
+        if ($profiles->isEmpty()) {
+            return [
+                'optimal_k' => null,
+                'warning' => 'No profiles available to evaluate.',
+            ];
+        }
+
+        $this->computeFeatureRanges($profiles);
+
+        // Prepare in-memory weighted & normalized vectors (cloned)
+        $samples = [];
+        foreach ($profiles as $p) {
+            $vector = $this->applyFeatureWeights(
+                $this->normalizeVector($this->profileToVector(clone $p, true))
+            );
+            $samples[$p->id] = $vector;
+        }
+
+        $maxK = min(8, count($samples) - 1); // avoid k > N
+        $silhouettes = [];
+        $precisionGains = [];
+        $performanceGains = [];
+        $bestK = null;
+        $bestScore = -INF;
+
+        $allProfileVectors = array_values($samples);
+
+        // Baseline: pure Euclidean (top 10 closest for each profile)
+        $baselineTopN = 10;
+        $baselineMatches = [];
+        foreach ($allProfileVectors as $i => $vecA) {
+            $distances = [];
+            foreach ($allProfileVectors as $j => $vecB) {
+                if ($i === $j) continue;
+                $distances[] = $this->euclideanDistance($vecA, $vecB);
+            }
+            sort($distances);
+            $baselineMatches[$i] = array_slice($distances, 0, $baselineTopN);
+        }
+
+        for ($k = 2; $k <= $maxK; $k++) {
+            $kmeans = new KMeans($k, KMeans::INIT_KMEANS_PLUS_PLUS);
+            $clusters = $kmeans->cluster(array_values($samples));
+
+            // Compute silhouette score (simple approximation)
+            $sums = [];
+            foreach ($clusters as $cluster) {
+                foreach ($cluster as $idxA => $vecA) {
+                    // a = avg intra-cluster distance
+                    $a = 0;
+                    foreach ($cluster as $idxB => $vecB) {
+                        if ($idxA === $idxB) continue;
+                        $a += $this->euclideanDistance($vecA, $vecB);
+                    }
+                    $a = count($cluster) > 1 ? $a / (count($cluster) - 1) : 0;
+
+                    // b = min avg distance to other clusters
+                    $b = INF;
+                    foreach ($clusters as $otherCluster) {
+                        if ($otherCluster === $cluster) continue;
+                        $avgDist = 0;
+                        foreach ($otherCluster as $vecB) {
+                            $avgDist += $this->euclideanDistance($vecA, $vecB);
+                        }
+                        $avgDist = count($otherCluster) ? $avgDist / count($otherCluster) : INF;
+                        $b = min($b, $avgDist);
+                    }
+
+                    $sums[] = ($b - $a) / max($a, $b, 1e-9); // avoid div by 0
+                }
+            }
+
+            $silhouette = count($sums) ? array_sum($sums) / count($sums) : 0;
+            $silhouettes[$k] = round($silhouette, 3);
+
+            // Compute precision@10 with cluster filtering vs baseline
+            $precisionSum = 0;
+            $clusterVecs = array_values($samples);
+            $collectedCount = 0;
+            foreach ($clusters as $cluster) {
+                $clusterIds = array_map(fn($v) => array_search($v, $samples, true), $cluster);
+                foreach ($clusterIds as $i) {
+                    $vecA = $samples[$i];
+                    $distances = [];
+                    foreach ($cluster as $vecB) {
+                        if ($vecA === $vecB) continue;
+                        $distances[] = $this->euclideanDistance($vecA, $vecB);
+                    }
+                    sort($distances);
+                    $topN = array_slice($distances, 0, $baselineTopN);
+                    // compare with baseline
+                    $baseline = $baselineMatches[$i] ?? [];
+                    $matchCount = 0;
+                    foreach ($topN as $val) {
+                        if (in_array($val, $baseline, true)) $matchCount++;
+                    }
+                    $precisionSum += $matchCount / $baselineTopN;
+                    $collectedCount++;
+                }
+            }
+            $precision = $collectedCount ? $precisionSum / $collectedCount : 0;
+            $precisionGains[$k] = round($precision * 100, 2);
+
+            // performance gain = avg reduction in search space
+            $totalPairs = count($allProfileVectors) * (count($allProfileVectors) - 1);
+            $clusterPairs = 0;
+            foreach ($clusters as $cluster) {
+                $n = count($cluster);
+                $clusterPairs += $n * ($n - 1);
+            }
+            $performanceGains[$k] = round(100 * (1 - $clusterPairs / max($totalPairs, 1)), 2);
+
+            // pick best silhouette for optimal k
+            if ($silhouette > $bestScore) {
+                $bestScore = $silhouette;
+                $bestK = $k;
+            }
+        }
+
+        // Determine if KMeans++ is actually useful
+        $warning = null;
+        if (
+            $bestScore < 0.15 ||
+            ($precisionGains[$bestK] ?? 0) < 5 ||
+            ($performanceGains[$bestK] ?? 0) < 20
+        ) {
+            $warning = 'KMeans++ clustering is not improving similarity or speed significantly. Consider disabling it.';
+        }
+
+        return [
+            'optimal_k' => $bestK,
+            'silhouette_scores' => $silhouettes,
+            'precision_gain' => $precisionGains[$bestK] ?? null,
+            'performance_gain' => $performanceGains[$bestK] ?? null,
+            'warning' => $warning,
+        ];
     }
 }
