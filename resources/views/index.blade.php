@@ -54,7 +54,11 @@
 
         <div class="profile-actions">
             <a class="btn btn-primary" href="{{ route('profiles.show',$profile) }}">View</a>
-            <button class="btn btn-outline" type="button">Message</button>
+            <a class="btn btn-outline"
+                href="{{ route('chat.show', $profile) }}">
+                Message
+            </a>
+
         </div>
     </article>
     @empty
