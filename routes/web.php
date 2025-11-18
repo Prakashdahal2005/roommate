@@ -24,7 +24,6 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 });
 
-//guest can view profile
 
 
 // auth-only routes (logout, profile, etc.)
@@ -35,9 +34,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/chat/{receiver}', [MessageController::class, 'show'])->name('chat.show');
     Route::get('/messages/{userId}', [MessageController::class, 'fetch']);
     Route::post('/messages', [MessageController::class, 'send']);
+    Route::get('/profiles/{profile}', [ProfileController::class, 'show'])->name('profiles.show');
 });
 
-Route::get('/profiles/{profile}', [ProfileController::class, 'show'])->name('profiles.show');
+
 
 // batch update for kmeans++ clusters ran by admin regularly (needs to be automated)
 Route::get('/runkmean/{k}', [ClusterController::class, 'kMeanBatchUpdate']);
