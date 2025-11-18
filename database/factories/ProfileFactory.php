@@ -25,7 +25,7 @@ class ProfileFactory extends Factory
         return [
             'user_id' => User::factory(),
             'display_name' => $this->faker->userName(),
-            'profile_picture' => $imageName,
+            'profile_picture' => null,
             'bio' => $this->faker->paragraphs($this->faker->numberBetween(1, 3), true),
             'gender' => $this->faker->randomElement(['male', 'female', 'other']),
             'budget_min' => $budgetMin,
