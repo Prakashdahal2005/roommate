@@ -12,6 +12,7 @@
         border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         font-family: Arial, sans-serif;
+        position: relative;
     }
 
     /* Header */
@@ -92,6 +93,7 @@
 
 @section('content')
 <div class="profile-container">
+    <button id="theme-toggle" class="btn btn-outline" type="button" aria-label="Toggle theme" title="Toggle theme" style="position:absolute; top:12px; right:12px;">🌙</button>
     <div class="profile-header">
         @if($profile->profile_picture)
         <img class="max-w-60" src="{{ asset('storage/' . $profile->profile_picture) }}" alt="{{ $profile->display_name }}" class="profile-picture">
