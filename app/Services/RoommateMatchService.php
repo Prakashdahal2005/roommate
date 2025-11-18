@@ -32,7 +32,6 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
             ];
         }
 
-
         $rawWeights = [
             0 => 0.20,
             1 => 0.25,
