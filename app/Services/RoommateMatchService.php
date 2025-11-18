@@ -64,10 +64,6 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
             $this->normalizeVector($this->profileToVector($userProfile, true))
         );
 
-        $userVector = $this->applyFeatureWeights(
-            $this->normalizeVector($this->profileToVector($userProfile, true))
-        );
-
         $clusters = DB::table('clusters')->get();
         if ($clusters->isEmpty()) {
             return collect();
