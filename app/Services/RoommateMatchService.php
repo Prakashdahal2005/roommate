@@ -7,6 +7,7 @@ use App\Models\Profile;
 use Illuminate\Support\Facades\DB;
 use Phpml\Clustering\KMeans;
 use App\Contracts\RoommateMatchServiceInterface;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -32,7 +33,6 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
             ];
         }
 
-
         $rawWeights = [
             0 => 0.20,
             1 => 0.25,
@@ -50,7 +50,7 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         }
     }
 
-    public function findMatches(Profile $profile, int $limit = 50): Collection
+    public function findMatches(Profile $profile, int $limit = 50, ?Request $request = null): Collection
     {
         $profiles = Profile::all();
         if ($profiles->isEmpty()) return collect();
@@ -95,7 +95,7 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         $profile->save();
 
         /* -------------------------------------------------
-         * 4. Start collecting matches cluster-by-cluster
+         * 4. Start collecting matches cluster-by-cluster WITH FILTERS
          * ------------------------------------------------- */
         $collected = collect();
 
@@ -104,9 +104,16 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
 
             $clusterId = $clusterInfo['cluster']->id;
 
-            $clusterUsers = Profile::where('cluster_id', $clusterId)
-                ->where('id', '<>', $profile->id)
-                ->get();
+            // Apply filters at database level to reduce search cost
+            $clusterUsersQuery = Profile::where('cluster_id', $clusterId)
+                ->where('id', '<>', $profile->id);
+
+            // Apply filters if provided
+            if ($request) {
+                $clusterUsersQuery = $this->applyFilters($clusterUsersQuery, $request);
+            }
+
+            $clusterUsers = $clusterUsersQuery->get();
 
             foreach ($clusterUsers as $p) {
                 if ($collected->count() >= $limit) break;
@@ -157,10 +164,35 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
             ->values();
     }
 
+    /**
+     * Apply filters to reduce search space
+     */
+    private function applyFilters($query, Request $request)
+    {
+        // Age filter
+        if ($request->filled('age_min')) {
+            $query->where('age', '>=', $request->age_min);
+        }
+        
+        if ($request->filled('age_max')) {
+            $query->where('age', '<=', $request->age_max);
+        }
+
+        // Gender filter
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->gender);
+        }
+
+        // Budget filter
+        if ($request->filled('budget_max')) {
+            $query->where('budget_max', '<=', $request->budget_max);
+        }
+
+        return $query;
+    }
 
     public function recalcClusters(int $k = 4): void
     {
-
         $profiles = Profile::all();
         if ($profiles->isEmpty()) return;
 
@@ -199,7 +231,6 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
             }
         }
     }
-
 
     /* ---------------------- Helpers ---------------------- */
 

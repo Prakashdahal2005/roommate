@@ -24,6 +24,46 @@
     </section>
 </div>
 
+<div style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <form method="GET" action="{{ route('home') }}" style="display: flex; gap: 12px; align-items: end; flex-wrap: wrap;">
+        
+        <div>
+            <label style="display: block; font-size: 0.875rem; margin-bottom: 4px;">Age</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="number" name="age_min" placeholder="Min" value="{{ request('age_min') }}" 
+                    style="width: 80px; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                <input type="number" name="age_max" placeholder="Max" value="{{ request('age_max') }}" 
+                    style="width: 80px; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+            </div>
+        </div>
+
+        <div>
+            <label style="display: block; font-size: 0.875rem; margin-bottom: 4px;">Gender</label>
+            <select name="gender" style="padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                <option value="">Any</option>
+                <option value="male" {{ request('gender') == 'male' ? 'selected' : '' }}>Male</option>
+                <option value="female" {{ request('gender') == 'female' ? 'selected' : '' }}>Female</option>
+            </select>
+        </div>
+
+        <div>
+            <label style="display: block; font-size: 0.875rem; margin-bottom: 4px;">Max Budget</label>
+            <input type="number" name="budget_max" placeholder="Rs. max" value="{{ request('budget_max') }}" 
+                style="width: 120px; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+        </div>
+
+        <div>
+            <button type="submit" style="background: #0A84FF; color: white; padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer;">
+                Filter
+            </button>
+            @if(request()->anyFilled(['age_min', 'age_max', 'gender', 'budget_max']))
+            <a href="{{ route('home') }}" style="margin-left: 8px; padding: 6px 12px; color: #6b7280; text-decoration: none;">
+                Clear
+            </a>
+            @endif
+        </div>
+    </form>
+</div>
 
 <div class="profiles-grid">
     @forelse($profiles as $profile)
