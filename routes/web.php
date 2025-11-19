@@ -41,3 +41,4 @@ Route::middleware('auth')->group(function () {
 
 // batch update for kmeans++ clusters ran by admin regularly (needs to be automated)
 Route::get('/runkmean/{k}', [ClusterController::class, 'kMeanBatchUpdate']);
+

@@ -19,6 +19,19 @@
             @csrf
             @method('PUT')
 
+            {{-- Location using Leaflet --}}
+            <div class="mb-3">
+                <label class="block font-semibold mb-1">Location</label>
+                <div id="profile-map" style="height:300px; border:1px solid #e5e7eb; border-radius:8px;"></div>
+                <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+                    <label style="font-size:.9rem;">Latitude</label>
+                    <input id="latitude" name="latitude" type="text" value="{{ old('latitude', $profile->latitude) }}" class="input" style="width:160px;" />
+                    <label style="font-size:.9rem;">Longitude</label>
+                    <input id="longitude" name="longitude" type="text" value="{{ old('longitude', $profile->longitude) }}" class="input" style="width:160px;" />
+                </div>
+                <p class="text-sm text-gray-500">Drag the marker to set your approximate location. Only approximate locations are shown to other users.</p>
+            </div>
+
             <div class="mb-3">
                 <label class="block font-semibold mb-1">Display Name</label>
                 <input type="text" name="display_name" value="{{ old('display_name', $profile->display_name) }}" class="input w-full border p-2 rounded">
@@ -105,3 +118,41 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-sA+e2k6f1f9b1gG6u5g3c3lKp9QG8GkGmZtJ1h1S0+8=" crossorigin=""/>
+@endpush
+
+@push('scripts')
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-o9N1j8t3p2h1q2l6r4u5v6w7x8y9z0a1b2c3d4e5f6g=" crossorigin=""></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const latInput = document.getElementById('latitude');
+            const lngInput = document.getElementById('longitude');
+            const defaultLat = latInput && latInput.value ? parseFloat(latInput.value) : 27.7172; // default Kathmandu
+            const defaultLng = lngInput && lngInput.value ? parseFloat(lngInput.value) : 85.3240;
+
+            const map = L.map('profile-map').setView([defaultLat, defaultLng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            const marker = L.marker([defaultLat, defaultLng], {draggable: true}).addTo(map);
+
+            marker.on('dragend', function (e) {
+                const pos = marker.getLatLng();
+                latInput.value = pos.lat.toFixed(7);
+                lngInput.value = pos.lng.toFixed(7);
+            });
+
+            map.on('click', function (e) {
+                marker.setLatLng(e.latlng);
+                latInput.value = e.latlng.lat.toFixed(7);
+                lngInput.value = e.latlng.lng.toFixed(7);
+            });
+        });
+    </script>
+@endpush

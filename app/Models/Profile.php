@@ -20,6 +20,8 @@ class Profile extends Model
         'schedule',
         'smokes',
         'pets_ok',
+        'latitude',
+        'longitude',
         'completion_score',
     ];
 

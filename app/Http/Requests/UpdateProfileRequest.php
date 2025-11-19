@@ -25,6 +25,8 @@ class UpdateProfileRequest extends FormRequest
             'schedule'         => 'sometimes|nullable|in:morning_person,night_owl,flexible',
             'smokes'           => 'sometimes|nullable|boolean',
             'pets_ok'          => 'sometimes|nullable|boolean',
+            'latitude'         => 'sometimes|nullable|numeric|between:-90,90',
+            'longitude'        => 'sometimes|nullable|numeric|between:-180,180',
             'is_active'        => 'sometimes|nullable|boolean',
             'completion_score' => 'sometimes|nullable|numeric|min:0|max:1',
             'cluster_id'       => 'sometimes|nullable|exists:clusters,id',

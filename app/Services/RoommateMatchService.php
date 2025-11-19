@@ -209,9 +209,31 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         $clusters = $kmeans->cluster(array_values($samples));
 
         Profile::query()->update(['cluster_id' => null]);
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        DB::table('clusters')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        // Truncate clusters in a driver-compatible way
+        try {
+            $driver = DB::getPdo()->getAttribute(\PDO::ATTR_DRIVER_NAME);
+        } catch (\Throwable $e) {
+            $driver = null;
+        }
+
+        if ($driver === 'mysql') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            DB::table('clusters')->truncate();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        } elseif ($driver === 'sqlite') {
+            // SQLite doesn't support TRUNCATE or SET FOREIGN_KEY_CHECKS
+            DB::table('clusters')->delete();
+            // reset sqlite autoincrement sequence if present
+            try {
+                DB::statement("DELETE FROM sqlite_sequence WHERE name='clusters';");
+            } catch (\Throwable $e) {
+                // ignore if sqlite_sequence not present
+            }
+        } else {
+            // Fallback: try truncate
+            DB::table('clusters')->truncate();
+        }
 
         foreach ($clusters as $clusterSamples) {
 
