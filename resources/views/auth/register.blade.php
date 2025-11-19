@@ -36,7 +36,7 @@
                     <p class="auth-subtitle">Sign up to discover matches</p>
                 </div>
 
-                <form method="POST" action="{{ route('register') }}">
+                <form method="POST" action="{{ route('register.submit') }}">
                     @csrf
 
                     @if (session('status'))

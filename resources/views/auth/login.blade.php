@@ -30,7 +30,7 @@
                     <p class="auth-subtitle">Sign in to continue to Roommate</p>
                 </div>
 
-                <form method="POST" action="{{ route('login') }}" novalidate>
+                <form method="POST" action="{{ route('login.submit') }}" novalidate>
                     @csrf
 
                     @if (session('status'))
