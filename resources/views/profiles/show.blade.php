@@ -107,7 +107,13 @@
     </div>
 
     <div class="profile-details">
+
+        <!-- AGE + GENDER GROUP (NEW: AGE ADDED) -->
         <div class="profile-detail-group">
+            <div class="profile-detail-item">
+                <span class="detail-label">Age</span>
+                <span class="detail-value">{{ $profile->user->age }}</span>
+            </div>
             <div class="profile-detail-item">
                 <span class="detail-label">Gender</span>
                 <span class="detail-value">{{ ucfirst($profile->gender) }}</span>
@@ -145,10 +151,10 @@
                     {{ $profile->pets_ok === null ? '' : ($profile->pets_ok ? 'Yes' : 'No') }}
                 </span>
             </div>
-
         </div>
     </div>
 </div>
+
 @if(auth()->user()?->profile->id === $profile->id)
 <p><a style="color:blue;" href="{{ route('profiles.edit') }}">Edit profile</a></p>
 @endif
