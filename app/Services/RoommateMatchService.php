@@ -19,10 +19,13 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
 
     public function __construct()
     {
-        $profiles = Profile::all();
+        // Load users relation because age lives on user
+        $profiles = Profile::with('user')->get();
         if ($profiles->isNotEmpty()) {
+            $ages = $profiles->pluck('user.age')->filter(); // remove nulls
+
             $this->globalDefaults = [
-                'age' => (int) round($profiles->avg('age')),
+                'age' => $ages->isNotEmpty() ? (int) round($ages->avg()) : 25,
                 'gender' => rand(1, 2),
                 'budget_min' => (int) round($profiles->avg('budget_min')),
                 'budget_max' => (int) round($profiles->avg('budget_max')),
@@ -52,12 +55,13 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
 
     public function findMatches(Profile $profile, int $limit = 50, ?Request $request = null): Collection
     {
-        $profiles = Profile::all();
+        // load profiles with user to ensure age available without extra queries
+        $profiles = Profile::with('user')->get();
         if ($profiles->isEmpty()) return collect();
 
         $this->computeFeatureRanges($profiles);
 
-        $completion_score = $profile->completion_score;
+        $completion_score = $profile->completion_score ?? 1;
         $userProfile = clone $profile;
 
         $userVector = $this->applyFeatureWeights(
@@ -88,11 +92,10 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         usort($clusterDistances, fn($a, $b) => $a['distance'] <=> $b['distance']);
 
         /* -------------------------------------------------
-         * 3. Assign user to nearest cluster
+         * 3. Assign user to nearest cluster (in-memory only — NO DB write)
          * ------------------------------------------------- */
-        $bestCluster = $clusterDistances[0]['cluster'];
-        $profile->cluster_id = $bestCluster->id;
-        $profile->save();
+        $bestCluster = $clusterDistances[0]['cluster'] ?? null;
+        // DO NOT write $profile->cluster_id or save to DB (explicitly requested no profile/user mutation)
 
         /* -------------------------------------------------
          * 4. Start collecting matches cluster-by-cluster WITH FILTERS
@@ -104,9 +107,11 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
 
             $clusterId = $clusterInfo['cluster']->id;
 
-            // Apply filters at database level to reduce search cost
+            // Apply filters at database level to reduce search cost.
+            // Age filters must be applied on related user.
             $clusterUsersQuery = Profile::where('cluster_id', $clusterId)
-                ->where('id', '<>', $profile->id);
+                ->where('id', '<>', $profile->id)
+                ->with('user');
 
             // Apply filters if provided
             if ($request) {
@@ -166,19 +171,25 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
 
     /**
      * Apply filters to reduce search space
+     *
+     * Note: Profile has no age column now — age lives on related user.
      */
     private function applyFilters($query, Request $request)
     {
-        // Age filter
+        // Age filter: filter via related user
         if ($request->filled('age_min')) {
-            $query->where('age', '>=', $request->age_min);
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('age', '>=', $request->age_min);
+            });
         }
 
         if ($request->filled('age_max')) {
-            $query->where('age', '<=', $request->age_max);
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('age', '<=', $request->age_max);
+            });
         }
 
-        // Gender filter
+        // Gender filter (still on profile)
         if ($request->filled('gender')) {
             $query->where('gender', $request->gender);
         }
@@ -193,7 +204,8 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
 
     public function recalcClusters(int $k = 4): void
     {
-        $profiles = Profile::all();
+        // Load profiles with user relation since age is on user
+        $profiles = Profile::with('user')->get();
         if ($profiles->isEmpty()) return;
 
         $this->computeFeatureRanges($profiles);
@@ -208,7 +220,8 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         $kmeans = new KMeans($k, KMeans::INIT_KMEANS_PLUS_PLUS);
         $clusters = $kmeans->cluster(array_values($samples));
 
-        Profile::query()->update(['cluster_id' => null]);
+        // NOTE: Do not mutate Profile rows (explicitly avoid updating profile->cluster_id).
+        // We still rebuild the clusters table (if desired); preserve original behavior on clusters table.
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         DB::table('clusters')->truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
@@ -223,12 +236,8 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
                 'updated_at' => now(),
             ]);
 
-            foreach ($clusterSamples as $sample) {
-                $profileId = array_search($sample, $samples, true);
-                if ($profileId !== false) {
-                    Profile::where('id', $profileId)->update(['cluster_id' => $clusterId]);
-                }
-            }
+            // DO NOT write cluster_id back to profiles (respecting "no profile/user mutation" requirement)
+            // If you later want to persist mapping, do it to a separate mapping table or call a different admin task.
         }
     }
 
@@ -240,8 +249,19 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         $cleanlinessMap = ['very_clean' => 3, 'clean' => 2, 'average' => 1, 'messy' => 0];
         $scheduleMap = ['morning_person' => 2, 'flexible' => 1, 'night_owl' => 0];
 
+        // ALWAYS take age from the related user. Do not mutate models.
+        $age = $profile->user->age ?? null;
+
+        if ($age === null && $fillNulls) {
+            $age = $this->globalDefaults['age'] ?? 0;
+        }
+
+        if ($age === null) {
+            $age = 0;
+        }
+
         return [
-            $profile->age ?? ($fillNulls ? $this->globalDefaults['age'] : 0),
+            $age,
             $genderMap[$profile->gender] ?? ($fillNulls ? $this->globalDefaults['gender'] : 1),
             $profile->budget_min ?? ($fillNulls ? $this->globalDefaults['budget_min'] : 0),
             $profile->budget_max ?? ($fillNulls ? $this->globalDefaults['budget_max'] : 0),
@@ -256,8 +276,8 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
     {
         $normalized = [];
         foreach ($vector as $i => $val) {
-            $min = $this->featureRanges[$i]['min'];
-            $max = $this->featureRanges[$i]['max'];
+            $min = $this->featureRanges[$i]['min'] ?? 0;
+            $max = $this->featureRanges[$i]['max'] ?? 0;
             $normalized[$i] = $max > $min ? ($val - $min) / ($max - $min) : 0;
         }
         return $normalized;
@@ -275,6 +295,7 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
 
     private function computeFeatureRanges($profiles): void
     {
+        // Ensure profiles are provided with user relation to compute age ranges properly
         $vectors = array_map(fn($p) => $this->profileToVector($p, true), $profiles->all());
         $numFeatures = count($vectors[0]);
         $ranges = [];
@@ -320,16 +341,14 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         return sqrt($sum);
     }
 
-
-
-
     /**
      * Evaluate KMeans++ clustering vs pure Euclidean
      * Returns optimal k, silhouette scores, precision & performance gains, and warning if clustering is ineffective.
      */
     public function evaluateClustering(): array
     {
-        $profiles = Profile::all();
+        // Load profiles with user relation
+        $profiles = Profile::with('user')->get();
         if ($profiles->isEmpty()) {
             return [
                 'optimal_k' => null,

@@ -22,21 +22,27 @@ class HomepageController extends Controller
 
     private function getGuestProfiles(Request $request)
     {
-        $query = Profile::query();
+        $query = Profile::query()->with('user'); // ensure age is available
 
-        // Apply filters
+        // ----- FIXED: age filtering via user relation -----
         if ($request->filled('age_min')) {
-            $query->where('age', '>=', $request->age_min);
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('age', '>=', $request->age_min);
+            });
         }
         
         if ($request->filled('age_max')) {
-            $query->where('age', '<=', $request->age_max);
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('age', '<=', $request->age_max);
+            });
         }
 
+        // gender is stored on profile — keep as-is
         if ($request->filled('gender')) {
             $query->where('gender', $request->gender);
         }
 
+        // budget filtering is also from profile — keep as-is
         if ($request->filled('budget_max')) {
             $query->where('budget_max', '<=', $request->budget_max);
         }
