@@ -17,10 +17,10 @@ class ProfileFactory extends Factory
         $budgetMin = $this->faker->numberBetween(500, 2500);
         $budgetMax = $this->faker->numberBetween($budgetMin + 100, 4000);
 
-        // Generate profile picture
-        $imageContents = file_get_contents('https://i.pravatar.cc/200?img=' . rand(1, 70));
-        $imageName = 'profiles/' . uniqid() . '.jpg';
-        Storage::disk('public')->put($imageName, $imageContents);
+        // // Generate profile picture
+        // $imageContents = file_get_contents('https://i.pravatar.cc/200?img=' . rand(1, 70));
+        // $imageName = 'profiles/' . uniqid() . '.jpg';
+        // Storage::disk('public')->put($imageName, $imageContents);
 
         return [
             'user_id' => User::factory(),

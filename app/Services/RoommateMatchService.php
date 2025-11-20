@@ -22,7 +22,7 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         $profiles = Profile::all();
         if ($profiles->isNotEmpty()) {
             $this->globalDefaults = [
-                'age' => (int) round($profiles->avg('age')),
+                'age' => (int) round($profiles->user->avg('age')),
                 'gender' => rand(1, 2),
                 'budget_min' => (int) round($profiles->avg('budget_min')),
                 'budget_max' => (int) round($profiles->avg('budget_max')),
@@ -241,7 +241,7 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         $scheduleMap = ['morning_person' => 2, 'flexible' => 1, 'night_owl' => 0];
 
         return [
-            $profile->age ?? ($fillNulls ? $this->globalDefaults['age'] : 0),
+            $profile->user->age ?? ($fillNulls ? $this->globalDefaults['age'] : 0),
             $genderMap[$profile->gender] ?? ($fillNulls ? $this->globalDefaults['gender'] : 1),
             $profile->budget_min ?? ($fillNulls ? $this->globalDefaults['budget_min'] : 0),
             $profile->budget_max ?? ($fillNulls ? $this->globalDefaults['budget_max'] : 0),
