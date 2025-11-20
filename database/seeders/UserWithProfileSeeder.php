@@ -12,7 +12,7 @@ class UserWithProfileSeeder extends Seeder
         DB::transaction(function () {
             // Create users and profiles together using the ProfileFactory
             // This automatically creates a User for each Profile due to the 'user_id' => User::factory() definition
-            \App\Models\Profile::factory()->count(30)->create();
+            \App\Models\Profile::factory()->count(100)->create();
         });
     }
 }

@@ -13,23 +13,9 @@ class ClusterController extends Controller
     // Show dashboard (read-only evaluation)
     public function index(KMeanBatchUpdateAdminInterface $kMeanBatchUpdate)
 {
-    // Evaluate new optimal K based on current data
     $results = $kMeanBatchUpdate->evaluateClustering();
 
-    // Fetch current clusters metrics (precision & performance) if clusters exist
-    $currentClusters = DB::table('clusters')->get();
-    $showRecalc = true;
-
-    if ($currentClusters->isNotEmpty()) {
-        // Evaluate the current clusters **without changing DB**
-        $currentMetrics = $kMeanBatchUpdate->evaluateClustering(true);
-
-        // Only show the button if the new evaluation is better
-        $showRecalc = ($results['precision_gain'] ?? 0) > ($currentMetrics['precision_gain'] ?? 0)
-                   && ($results['performance_gain'] ?? 0) > ($currentMetrics['performance_gain'] ?? 0);
-    }
-
-    return view('admin.dashboard', compact('results', 'showRecalc'));
+    return view('admin.dashboard', compact('results'));
 }
 
 
