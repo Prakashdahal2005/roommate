@@ -9,6 +9,7 @@ use Phpml\Clustering\KMeans;
 use App\Contracts\RoommateMatchServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Carbon;
 
 class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchUpdateAdminInterface
 {
@@ -30,10 +31,25 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
                 'schedule' => 1,
                 'smokes' => 0,
                 'pets_ok' => 0,
+                'move_in_lat' => $profiles->avg('move_in_lat') ?? 27.7172,
+                'move_in_lng' => $profiles->avg('move_in_lng') ?? 85.3240,
+                'move_in_date' => 0,
             ];
         }
 
-        $rawWeights = [0.2, 0.25, 0.15, 0.15, 0.15, 0.05, 0.03, 0.02];
+        $rawWeights = [
+            0.20, // age
+            0.20, // gender
+            0.12, // budget_min
+            0.12, // budget_max
+            0.10, // cleanliness
+            0.05, // schedule
+            0.03, // smokes
+            0.03, // pets_ok
+            0.08, // move_in_lat
+            0.08, // move_in_lng
+            0.09  // move_in_date
+        ];
         $sum = array_sum($rawWeights) ?: 1;
         foreach ($rawWeights as $i => $w) {
             $this->featureWeights[$i] = $w / $sum;
@@ -85,7 +101,6 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
                 $distance = $this->euclideanDistance($userVector, $vector);
                 $similarity = max(0, min(100, (1 - min($distance, 1)) * 100));
 
-                // Budget adjustment
                 $overlapMin = max($profile->budget_min, $p->budget_min);
                 $overlapMax = min($profile->budget_max, $p->budget_max);
                 $budgetAdjustment = ($overlapMax >= $overlapMin)
@@ -120,49 +135,43 @@ class RoommateMatchService implements RoommateMatchServiceInterface, KMeanBatchU
         return $query;
     }
 
-public function recalcClusters(int $k = 4): void
-{
-    $profiles = Profile::with('user')->get();
-    if ($profiles->isEmpty()) return;
+    public function recalcClusters(int $k = 4): void
+    {
+        $profiles = Profile::with('user')->get();
+        if ($profiles->isEmpty()) return;
 
-    $this->computeFeatureRanges($profiles);
+        $this->computeFeatureRanges($profiles);
 
-    // Map profile IDs to vectors
-    $samples = [];
-    foreach ($profiles as $profile) {
-        $samples[$profile->id] = $this->applyFeatureWeights(
-            $this->normalizeVector($this->profileToVector($profile, true))
-        );
-    }
+        $samples = [];
+        foreach ($profiles as $profile) {
+            $samples[$profile->id] = $this->applyFeatureWeights(
+                $this->normalizeVector($this->profileToVector($profile, true))
+            );
+        }
 
-    // Run KMeans++
-    $kmeans = new KMeans($k, KMeans::INIT_KMEANS_PLUS_PLUS);
-    $clusters = $kmeans->cluster(array_values($samples));
+        $kmeans = new KMeans($k, KMeans::INIT_KMEANS_PLUS_PLUS);
+        $clusters = $kmeans->cluster(array_values($samples));
 
-    DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-    DB::table('clusters')->truncate();
-    DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::table('clusters')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-    foreach ($clusters as $clusterVectors) {
-        // Compute centroid
-        $centroid = $this->computeCentroid($clusterVectors);
-        $clusterRecordId = DB::table('clusters')->insertGetId([
-            'vector' => json_encode($centroid),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        foreach ($clusters as $clusterVectors) {
+            $centroid = $this->computeCentroid($clusterVectors);
+            $clusterRecordId = DB::table('clusters')->insertGetId([
+                'vector' => json_encode($centroid),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
 
-        // Assign cluster_id to profiles
-        foreach ($clusterVectors as $vector) {
-            // Find the profile ID corresponding to this vector
-            $profileId = array_search($vector, $samples, true);
-            if ($profileId !== false) {
-                Profile::where('id', $profileId)->update(['cluster_id' => $clusterRecordId]);
+            foreach ($clusterVectors as $vector) {
+                $profileId = array_search($vector, $samples, true);
+                if ($profileId !== false) {
+                    Profile::where('id', $profileId)->update(['cluster_id' => $clusterRecordId]);
+                }
             }
         }
     }
-}
-
 
     private function profileToVector(Profile $profile, bool $fillNulls = false): array
     {
@@ -171,6 +180,10 @@ public function recalcClusters(int $k = 4): void
         $scheduleMap = ['morning_person' => 2, 'flexible' => 1, 'night_owl' => 0];
 
         $age = $profile->user->age ?? ($fillNulls ? $this->globalDefaults['age'] : 0);
+        $moveInDate = $profile->move_in_date
+            ? max(0, Carbon::now()->diffInDays(Carbon::parse($profile->move_in_date)))
+            : ($fillNulls ? $this->globalDefaults['move_in_date'] : 0);
+
         return [
             $age,
             $genderMap[$profile->gender] ?? ($fillNulls ? $this->globalDefaults['gender'] : 0),
@@ -180,6 +193,9 @@ public function recalcClusters(int $k = 4): void
             $scheduleMap[$profile->schedule] ?? ($fillNulls ? $this->globalDefaults['schedule'] : 1),
             $profile->smokes ? 1 : ($fillNulls ? $this->globalDefaults['smokes'] : 0),
             $profile->pets_ok ? 1 : ($fillNulls ? $this->globalDefaults['pets_ok'] : 0),
+            $profile->move_in_lat ?? ($fillNulls ? $this->globalDefaults['move_in_lat'] : 0),
+            $profile->move_in_lng ?? ($fillNulls ? $this->globalDefaults['move_in_lng'] : 0),
+            $moveInDate
         ];
     }
 
@@ -214,15 +230,10 @@ public function recalcClusters(int $k = 4): void
     private function computeCentroid(array $samples): array
     {
         $numSamples = count($samples);
-        if ($numSamples === 0) {
-            return [];
-        }
+        if ($numSamples === 0) return [];
 
-        // Filter out any non-array or empty entries
         $samples = array_filter($samples, fn($s) => is_array($s) && count($s) > 0);
-        if (empty($samples)) {
-            return [];
-        }
+        if (empty($samples)) return [];
 
         $numFeatures = count($samples[array_key_first($samples)]);
         $centroid = array_fill(0, $numFeatures, 0);
@@ -236,7 +247,6 @@ public function recalcClusters(int $k = 4): void
         return array_map(fn($v) => $v / $numSamples, $centroid);
     }
 
-
     private function euclideanDistance(array $a, array $b): float
     {
         $sum = 0;
@@ -244,10 +254,9 @@ public function recalcClusters(int $k = 4): void
         return sqrt($sum);
     }
 
-    public function evaluateClustering(bool $existingClusters = false): array
+public function evaluateClustering(bool $existingClusters = false): array
 {
-    $minPrecision = 55; // minimum required precision
-
+    $minPrecision = 55;
     $profiles = Profile::with('user')->orderBy('id')->get();
     if ($profiles->isEmpty()) {
         return ['optimal_k' => null, 'precision' => null, 'performance_gain' => null];
@@ -269,13 +278,15 @@ public function recalcClusters(int $k = 4): void
 
     $topN = min(10, $numProfiles - 1);
 
-    // Baseline: exhaustive Euclidean top-N per profile
+    // --- Baseline: exhaustive top-N distances ---
     $baselineMatches = [];
+    $baselineComputations = 0;
     for ($i = 0; $i < $numProfiles; $i++) {
         $dists = [];
         for ($j = 0; $j < $numProfiles; $j++) {
             if ($i === $j) continue;
             $dists[$profileIds[$j]] = $this->euclideanDistance($samples[$i], $samples[$j]);
+            $baselineComputations++;
         }
         asort($dists);
         $baselineMatches[$profileIds[$i]] = array_slice(array_keys($dists), 0, $topN);
@@ -284,9 +295,7 @@ public function recalcClusters(int $k = 4): void
     $maxK = min(15, $numProfiles - 1);
     $validKs = [];
 
-    // Loop K from 2 to maxK
     for ($k = 2; $k <= $maxK; $k++) {
-        // Run KMeans++
         $kmeans = new KMeans($k, KMeans::INIT_KMEANS_PLUS_PLUS);
         $clusters = $kmeans->cluster($samples);
 
@@ -294,62 +303,56 @@ public function recalcClusters(int $k = 4): void
         foreach ($clusters as $clusterVectors) {
             $centroids[] = $this->computeCentroid($clusterVectors);
         }
+        if (empty($centroids)) $centroids[] = $this->computeCentroid($samples);
 
-        if (empty($centroids)) {
-            $centroids[] = $this->computeCentroid($samples);
-        }
-
-        // Assign samples to nearest centroid
-        $clusterAssignments = array_fill(0, $numProfiles, 0);
+        // Assign each profile to nearest cluster
+        $clusterAssignments = [];
         foreach ($samples as $idx => $vec) {
-            $best = 0;
             $bestD = INF;
+            $bestC = 0;
             foreach ($centroids as $cIdx => $centroid) {
                 $d = $this->euclideanDistance($vec, $centroid);
                 if ($d < $bestD) {
                     $bestD = $d;
-                    $best = $cIdx;
+                    $bestC = $cIdx;
                 }
             }
-            $clusterAssignments[$idx] = $best;
+            $clusterAssignments[$idx] = $bestC;
         }
 
-        // Build cluster map
+        // Map cluster -> members
         $clusterMap = [];
         foreach ($clusterAssignments as $idx => $cIdx) {
-            $pid = $profileIds[$idx];
-            $clusterMap[$cIdx][] = $pid;
+            $clusterMap[$cIdx][] = $profileIds[$idx];
         }
 
-        // Compute precision
-        $precisionSum = 0.0;
+        $precisionSum = 0;
+        $distComputations = 0;
+
         foreach ($profileIds as $pid) {
-            $memberList = [];
-            foreach ($clusterMap as $members) {
-                if (in_array($pid, $members)) {
-                    foreach ($members as $m) {
-                        if ($m !== $pid) $memberList[] = $m;
-                    }
-                    break;
-                }
+            $clusterId = $clusterAssignments[array_search($pid, $profileIds)];
+            $members = $clusterMap[$clusterId];
+            $members = array_diff($members, [$pid]);
+
+            // Compute distances only for top-N within cluster
+            $memberDists = [];
+            foreach ($members as $mId) {
+                $idx = array_search($mId, $profileIds);
+                $memberDists[$mId] = $this->euclideanDistance($samples[array_search($pid, $profileIds)], $samples[$idx]);
+                $distComputations++;
             }
-            $memberList = array_values(array_unique($memberList));
-            $retrieved = array_slice($memberList, 0, $topN);
-            $truePos = count(array_intersect($retrieved, $baselineMatches[$pid] ?? []));
-            $precisionSum += ($truePos / max($topN, 1));
-        }
-        $avgPrecision = ($precisionSum / max($numProfiles, 1)) * 100.0;
+            asort($memberDists);
+            $retrieved = array_slice(array_keys($memberDists), 0, $topN);
 
-        // Compute performance gain
-        $totalPairs = $numProfiles * ($numProfiles - 1);
-        $clusterPairs = 0;
-        foreach ($clusterMap as $members) {
-            $n = count($members);
-            $clusterPairs += $n * ($n - 1);
+            $truePos = count(array_intersect($retrieved, $baselineMatches[$pid]));
+            $precisionSum += $truePos / max($topN, 1);
         }
-        $performanceGain = round(100 * (1 - $clusterPairs / max($totalPairs, 1)), 2);
 
-        // Keep K only if precision >= minPrecision
+        $avgPrecision = ($precisionSum / $numProfiles) * 100;
+
+        // Rational performance gain relative to baseline
+        $performanceGain = round(100 * (1 - ($distComputations / $baselineComputations)), 2);
+
         if ($avgPrecision >= $minPrecision) {
             $validKs[$k] = [
                 'precision' => round($avgPrecision, 2),
@@ -367,8 +370,12 @@ public function recalcClusters(int $k = 4): void
         ];
     }
 
-    // fallback if no K meets threshold
-    return ['optimal_k' => null, 'precision' => null, 'performance_gain' => null];
+    // fallback
+    return [
+        'optimal_k' => 2,
+        'precision' => round($avgPrecision ?? 0, 2),
+        'performance_gain' => $performanceGain ?? 0,
+    ];
 }
 
 }

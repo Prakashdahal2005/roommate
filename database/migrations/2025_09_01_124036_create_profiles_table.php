@@ -25,6 +25,11 @@ return new class extends Migration
             $table->enum('schedule', ['morning_person', 'night_owl', 'flexible'])->nullable();
             $table->boolean('smokes')->nullable();
             $table->boolean('pets_ok')->nullable();
+
+            // Move-in details
+            $table->date('move_in_date')->nullable();
+            $table->decimal('move_in_lat', 10, 7)->nullable(); // Latitude
+            $table->decimal('move_in_lng', 10, 7)->nullable(); // Longitude
             
             // Status
             $table->boolean('is_active')->default(true);
