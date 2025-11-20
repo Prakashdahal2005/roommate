@@ -21,13 +21,12 @@ class UpdateProfileRequest extends FormRequest
             'budget_min'       => 'sometimes|nullable|numeric|min:0',
             'budget_max'       => 'sometimes|nullable|numeric|gte:budget_min',
             'move_in_date'     => 'sometimes|nullable|date',
+            'move_in_lat'      => 'sometimes|nullable|numeric|between:-90,90',
+            'move_in_lng'      => 'sometimes|nullable|numeric|between:-180,180',
             'cleanliness'      => 'sometimes|nullable|in:very_clean,clean,average,messy',
             'schedule'         => 'sometimes|nullable|in:morning_person,night_owl,flexible',
             'smokes'           => 'sometimes|nullable|boolean',
             'pets_ok'          => 'sometimes|nullable|boolean',
-            'is_active'        => 'sometimes|nullable|boolean',
-            'completion_score' => 'sometimes|nullable|numeric|min:0|max:1',
-            'cluster_id'       => 'sometimes|nullable|exists:clusters,id',
         ];
     }
 }

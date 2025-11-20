@@ -118,19 +118,6 @@
         {{ session('status') }}
     </div>
     @endif
-
-    @php
-        $metricsMissing = empty($results) || 
-                          is_null($results['optimal_k']) || 
-                          is_null($results['precision']) || 
-                          is_null($results['performance_gain']);
-    @endphp
-
-    @if($metricsMissing)
-        <div class="status-message status-warning" role="alert">
-            Clustering has not reached the required threshold. Results are not available yet.
-        </div>
-    @else
         <div class="metric-grid">
             <div class="metric-box">
                 <div class="metric-title">Optimal K</div>
@@ -147,11 +134,9 @@
                 <div style="font-size:18px;">{{ $results['performance_gain'] }} %</div>
             </div>
         </div>
-
-        <a href="{{ route('runkmean', $results['optimal_k']) }}" class="btn-run">
+     <a href="{{ route('runkmean', $results['optimal_k']??2) }}" class="btn-run">
             Run KMeans++ Recalculation
         </a>
-    @endif
 
 </div>
 @endsection

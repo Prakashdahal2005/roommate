@@ -2,6 +2,14 @@
 
 @section('title', 'Edit Profile')
 
+@push('styles')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        #map { height: 300px; border-radius: 10px; margin-bottom: 15px; }
+    </style>
+@endpush
+
 @section('content')
 <div class="container mx-auto p-4">
     <div class="auth-form" style="max-width:720px; margin:0 auto; position:relative;">
@@ -19,6 +27,7 @@
             @csrf
             @method('PUT')
 
+            <!-- Existing fields -->
             <div class="mb-3">
                 <label class="block font-semibold mb-1">Display Name</label>
                 <input type="text" name="display_name" value="{{ old('display_name', $profile->display_name) }}" class="input w-full border p-2 rounded">
@@ -98,6 +107,29 @@
                 </label>
             </div>
 
+            <!-- Move-in Location (Leaflet Map) -->
+            <div class="mb-3">
+                <label class="block font-semibold mb-1">Move-in Location</label>
+                <div id="map"></div>
+                <input type="hidden" id="move_in_lat" name="move_in_lat" value="{{ old('move_in_lat', $profile->move_in_lat) }}">
+                <input type="hidden" id="move_in_lng" name="move_in_lng" value="{{ old('move_in_lng', $profile->move_in_lng) }}">
+                @error('move_in_lat')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
+                @error('move_in_lng')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Move-in Date (Flatpickr) -->
+            <div class="mb-3">
+                <label class="block font-semibold mb-1">Move-in Date</label>
+                <input type="text" name="move_in_date" id="move_in_date" value="{{ old('move_in_date', $profile->move_in_date) }}" class="input w-full border p-2 rounded" placeholder="Select a date">
+                @error('move_in_date')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
             <div class="text-center">
                 <button type="submit" class="btn btn-primary">Update Profile</button>
             </div>
@@ -105,3 +137,50 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    // Default coordinates (Kathmandu)
+    const defaultLat = 27.7172;
+    const defaultLng = 85.3240;
+
+    // Get old values or profile values or fallback to default
+    const moveInLat = parseFloat("{{ old('move_in_lat', $profile->move_in_lat ?? '') }}") || defaultLat;
+    const moveInLng = parseFloat("{{ old('move_in_lng', $profile->move_in_lng ?? '') }}") || defaultLng;
+
+    // Initialize Leaflet map
+    const map = L.map('map').setView([moveInLat, moveInLng], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Marker
+    let marker = L.marker([moveInLat, moveInLng], { draggable: true }).addTo(map);
+
+    // Update hidden inputs on drag
+    marker.on('dragend', function(e) {
+        const pos = marker.getLatLng();
+        document.getElementById('move_in_lat').value = pos.lat;
+        document.getElementById('move_in_lng').value = pos.lng;
+    });
+
+    // Update marker on map click
+    map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        document.getElementById('move_in_lat').value = e.latlng.lat;
+        document.getElementById('move_in_lng').value = e.latlng.lng;
+    });
+
+    // Initialize Flatpickr
+    const moveInDateInput = document.getElementById('move_in_date');
+    flatpickr(moveInDateInput, {
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        defaultDate: moveInDateInput.value || null
+    });
+</script>
+@endpush
